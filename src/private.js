@@ -2,10 +2,7 @@ var _SlidePanel = {
     // Current state information.
     _states: {},
     _views: {},
-
-    initialize: function() {
-        
-    },
+    _current: null,
 
     /**
      * Checks whether the carousel is in a specific state or not.
@@ -34,11 +31,33 @@ var _SlidePanel = {
 
     show: function(object){
         if(!(object instanceof Instance)){
-            object = new Instance.apply(arguments);
+            switch(arguments.length) {
+                case 0:
+                    object = new Instance();
+                    break;
+                case 1:
+                    object = new Instance(arguments[0]);
+                    break;
+                case 2:
+                    object = new Instance(arguments[0], arguments[1]);
+                    break;
+            }
         }
-        
-        var view = this.getView(object.options);
-        view.show();
+
+        var view = this.getView(object.options), 
+            self = this, 
+            callback = function(){
+                view.show();
+                self._current = view;
+            };
+
+        if(view !== this._current){
+            if(this._current !== null){
+                this._current.hide(callback);
+            } else {
+                callback();
+            }
+        }
     },
 
     getView: function(options) {
@@ -52,6 +71,11 @@ var _SlidePanel = {
     },
 
     hide: function(){
-
+        if(this._current !== null){
+            var self = this;
+            this._current.hide(function(){
+                self._current = null;
+            });
+        }
     }
 };

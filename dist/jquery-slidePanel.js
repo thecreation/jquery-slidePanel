@@ -1,4 +1,4 @@
-/*! jQuery slidePanel - v0.1.0 - 2015-04-03
+/*! jQuery slidePanel - v0.1.0 - 2015-04-04
 * https://github.com/amazingSurge/jquery-slidePanel
 * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
@@ -203,27 +203,26 @@ var Easings = {
 
 SlidePanel.options = {
 	classes: {
-		panel: 'sidePanel',
-		show: 'slidePanel-show',
+		base: 'sidePanel',
 		loading: 'sidePanel-loading',
 		content: 'sidePanel-content'
 	},
 
 	template: function(){
-		return '<div class="'+this.options.classes.panel+'"><div class="'+this.options.classes.content+'"></div></div>';
+		return '<div class="'+this.classes.base+'"><div class="'+this.classes.content+'"></div></div>';
 	},
 
-	loading: {
-		template: function(){
-			return '<div class="'+this.options.classes.loading+'"></div>';
-		},
+	loadingAppendTo: 'panel', // body, panel
+
+	loadingTemplate: function(){
+		return '<div class="'+this.classes.loading+'"></div>';
 	},
 
 	useCssTransforms3d: true,
     useCssTransforms: true,
     useCssTransitions: true,
 
-	direction: 'right', // up, down, left, right
+	direction: 'right', // top, bottom, left, right
 	duration: '300',
 	easing: 'ease' // linear, ease-in, ease-out, ease-in-out
 };
@@ -236,15 +235,17 @@ function View() {
 $.extend(View.prototype, {
     initialize: function(options) {
         this.options = options;
-
+        this._show = false;
         this.build();
     },
 
     build: function() {
         if (this._build) return;
 
-        var html = this.options.template.call(SlidePanel);
-        this.$panel = $(html).appendTo('body');
+        var options = this.options;
+
+        var html = options.template.call(options);
+        this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
         this.$content = this.$panel.find('.'+this.options.classes.content);
         
         this.loading = new Loading(this);
@@ -254,10 +255,24 @@ $.extend(View.prototype, {
 
     show: function(callback) {
         this.build();
+
+        this.$panel.addClass(this.options.classes.base + '-show');
+
+        this._show = true;
+
+        if($.isFunction(callback)){
+            callback.call(this);
+        }
     },
 
     hide: function(callback) {
-        
+        this.$panel.removeClass(this.options.classes.base + '-show');
+
+        this._show = false;
+
+        if($.isFunction(callback)){
+            callback.call(this);
+        }
     }
 });
 // Loading
@@ -267,22 +282,39 @@ function Loading() {
 
 $.extend(Loading.prototype, {
     initialize: function(view) {
-
+        this._view = view;
         this.build();
     },
 
     build: function() {
         if (this._build) return;
-        
+        var options = this._view.options;
+        var html = options.loadingTemplate.call(options);
+
+        this.$dom = $(html);
+
+        switch(options.loadingAppendTo){
+            case 'panel':
+                this.$dom.appendTo(this._view.$panel);
+                break;
+            case 'body':
+                this.$dom.appendTo('body');
+                break;
+            default:
+                this.$dom.appendTo(options.loadingAppendTo);
+        }
+
         this._build = true;
     },
 
     show: function(callback) {
         this.build();
+
+        this.$dom.addClass(this.options.classes.loading + '-show');
     },
 
     hide: function(callback) {
-        
+        this.$dom.removeClass(this.options.classes.loading + '-show');
     }
 });
 
@@ -312,10 +344,10 @@ $.extend(Instance.prototype, {
 		if(object && object.options) {
 			object.options = $.extend(true, options, object.options);
 		} else {
-			object.options = $.extend({}, options);
+			object.options = options;
 		}
 
-		object.options = $.extend(true, SlidePanel.options, object.options);
+		object.options = $.extend(true, {}, SlidePanel.options, object.options);
 
 		$.extend(this, object);
 
@@ -327,10 +359,7 @@ var _SlidePanel = {
     // Current state information.
     _states: {},
     _views: {},
-
-    initialize: function() {
-        
-    },
+    _current: null,
 
     /**
      * Checks whether the carousel is in a specific state or not.
@@ -359,11 +388,33 @@ var _SlidePanel = {
 
     show: function(object){
         if(!(object instanceof Instance)){
-            object = new Instance.apply(arguments);
+            switch(arguments.length) {
+                case 0:
+                    object = new Instance();
+                    break;
+                case 1:
+                    object = new Instance(arguments[0]);
+                    break;
+                case 2:
+                    object = new Instance(arguments[0], arguments[1]);
+                    break;
+            }
         }
-        
-        var view = this.getView(object.options);
-        view.show();
+
+        var view = this.getView(object.options), 
+            self = this, 
+            callback = function(){
+                view.show();
+                self._current = view;
+            };
+
+        if(view !== this._current){
+            if(this._current !== null){
+                this._current.hide(callback);
+            } else {
+                callback();
+            }
+        }
     },
 
     getView: function(options) {
@@ -377,7 +428,12 @@ var _SlidePanel = {
     },
 
     hide: function(){
-
+        if(this._current !== null){
+            var self = this;
+            this._current.hide(function(){
+                self._current = null;
+            });
+        }
     }
 };
 $.extend(SlidePanel, {
@@ -385,13 +441,13 @@ $.extend(SlidePanel, {
         return _SlidePanel.is(state);
     },
 
-    show: function(object) {
-        _SlidePanel.show.apply(_SlidePanel, Array.prototype.slice.call(arguments, 1));
+    show: function(object, options) {
+        _SlidePanel.show.apply(_SlidePanel, arguments);
         return this;
     },
 
     hide: function() {
-        View.hide();
+        _SlidePanel.hide.apply(_SlidePanel, arguments);
         return this;
     }
 });

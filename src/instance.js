@@ -24,10 +24,10 @@ $.extend(Instance.prototype, {
 		if(object && object.options) {
 			object.options = $.extend(true, options, object.options);
 		} else {
-			object.options = $.extend({}, options);
+			object.options = options;
 		}
 
-		object.options = $.extend(true, SlidePanel.options, object.options);
+		object.options = $.extend(true, {}, SlidePanel.options, object.options);
 
 		$.extend(this, object);
 

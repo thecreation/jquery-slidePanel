@@ -3,13 +3,13 @@ $.extend(SlidePanel, {
         return _SlidePanel.is(state);
     },
 
-    show: function(object) {
-        _SlidePanel.show.apply(_SlidePanel, Array.prototype.slice.call(arguments, 1));
+    show: function(object, options) {
+        _SlidePanel.show.apply(_SlidePanel, arguments);
         return this;
     },
 
     hide: function() {
-        View.hide();
+        _SlidePanel.hide.apply(_SlidePanel, arguments);
         return this;
     }
 });

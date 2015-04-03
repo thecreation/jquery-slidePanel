@@ -1,0 +1,12 @@
+.sidePanel {
+  visibility: hidden;
+}
+.sidePanel-show {
+  visibility: visible;
+}
+.slidePanel-loading {
+  visibility: hidden;
+}
+.slidePanel-loading-show {
+  visibility: visible;
+}

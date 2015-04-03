@@ -6,13 +6,13 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <title>check</title>
+        <title>SlidePanel</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width">
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">      
-        <link rel="stylesheet" href="../css/plugin.css">
+        <link rel="stylesheet" href="../css/slidePanel.css">
 
         <script src="../libs/jquery/jquery.js"></script>
         <script src="js/toc.js"></script>
@@ -29,7 +29,19 @@
     <section>
         <h2>Basic</h2>
         <div class="example">
-            <a href="#" data-plugin="slidepanel">basic</a>
+            <a href="ajax.html" class="example-basic">basic</a>
+        </div>
+    </section>
+    <section>
+        <h2>Show</h2>
+        <div class="example">
+            <button class="example-show">Show</button>
+        </div>
+    </section>
+    <section>
+        <h2>Hide</h2>
+        <div class="example">
+            <button class="example-hide">Hide</button>
         </div>
     </section>
 </div>
@@ -40,7 +52,19 @@
 })();
 
 $(document).ready(function(){
-    $('[data-plugin="slidepanel"]').slidePanel();
+    $('.example-basic').slidePanel();
+    $('.example-show').on('click', function(){
+        $.slidePanel.show({
+            content: '<div><h2>Title</h2><p>content here</p></div>'
+        }, {
+            direction: 'top',
+            loadingAppendTo: 'body'
+        });
+    });
+
+    $('.example-hide').on('click', function(){
+        $.slidePanel.hide();
+    });
 });
 </script>
 </body>
