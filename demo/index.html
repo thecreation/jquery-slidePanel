@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>check</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/main.css">      
+        <link rel="stylesheet" href="../css/plugin.css">
+
+        <script src="../libs/jquery/jquery.js"></script>
+        <script src="js/toc.js"></script>
+        <script src="js/prism.js"></script>
+        <script src="../dist/jquery-slidePanel.js"></script>
+    </head>
+<body>
+<!--[if lt IE 7]>
+    <p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+<![endif]-->
+<div id="toc"></div>
+
+<div id="wrapper">
+    <section>
+        <h2>Basic</h2>
+        <div class="example">
+            <a href="#" data-plugin="slidepanel">basic</a>
+        </div>
+    </section>
+</div>
+
+<script>
+(function(){
+    $('#toc').toc();
+})();
+
+$(document).ready(function(){
+    $('[data-plugin="slidepanel"]').slidePanel();
+});
+</script>
+</body>
+</html>
