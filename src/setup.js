@@ -1,3 +1,3 @@
 var SlidePanel = $.slidePanel = function(){
-	SlidePanel.open.apply( this, arguments );
+	SlidePanel.show.apply( this, arguments );
 };

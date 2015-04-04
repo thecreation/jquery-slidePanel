@@ -1,7 +1,65 @@
 .sidePanel {
+  position: fixed;
+  background: rgba(0, 0, 0, 0.2);
+  max-width: 100%;
+  max-height: 100%;
   visibility: hidden;
 }
+.sidePanel-right,
+.sidePanel-left {
+  height: 100%;
+  width: 500px;
+}
+@media screen (max-width: 768px) {
+  .sidePanel-right,
+  .sidePanel-left {
+    width: 100%;
+  }
+}
+.sidePanel-top,
+.sidePanel-bottom {
+  width: 100%;
+  height: 300px;
+}
+@media screen (max-width: 768px) {
+  .sidePanel-top,
+  .sidePanel-bottom {
+    height: 100%;
+  }
+}
+.sidePanel-left {
+  top: 0;
+  left: 0;
+  -webkit-transform: translate3d(-100%, 0, 0);
+          transform: translate3d(-100%, 0, 0);
+}
+.sidePanel-right {
+  top: 0;
+  right: 0;
+  -webkit-transform: translate3d(100%, 0, 0);
+          transform: translate3d(100%, 0, 0);
+}
+.sidePanel-top {
+  top: 0;
+  left: 0;
+  -webkit-transform: translate3d(0, -100%, 0);
+          transform: translate3d(0, -100%, 0);
+}
+.sidePanel-bottom {
+  bottom: 0;
+  left: 0;
+  -webkit-transform: translate3d(0, 100%, 0);
+          transform: translate3d(0, 100%, 0);
+}
+.sidePanel-html {
+  height: 100%;
+}
+.sidePanel-html body {
+  height: 100%;
+}
 .sidePanel-show {
+  -webkit-transform: translate3d(0, 0, 0);
+          transform: translate3d(0, 0, 0);
   visibility: visible;
 }
 .slidePanel-loading {
