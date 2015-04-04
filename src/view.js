@@ -60,11 +60,12 @@ $.extend(View.prototype, {
     },
 
     hide: function(callback) {
-        this.$panel.removeClass(this.options.classes.base + '-show');
-        $('html').removeClass(this.options.classes.base + '-html');
         this._show = false;
 
-        Animate.do(this, this.getHidePosition());
+        Animate.do(this, this.getHidePosition(), function(){
+            this.$panel.removeClass(this.options.classes.base + '-show');
+            $('html').removeClass(this.options.classes.base + '-html');
+        });
 
         if($.isFunction(callback)){
             callback.call(this);
@@ -99,7 +100,7 @@ $.extend(View.prototype, {
     },
 
     setPosition: function(value) {
-        var style = this.makePositionStyle(value);
+        var style = this.makePositionStyle(value);console.info(style);
             this.$panel.css(style);
     }
 });

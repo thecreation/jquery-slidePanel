@@ -1,4 +1,4 @@
-/*! jQuery slidePanel - v0.1.0 - 2015-04-04
+/*! jQuery slidePanel - v0.1.0 - 2015-04-05
 * https://github.com/amazingSurge/jquery-slidePanel
 * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
@@ -289,11 +289,13 @@ $.extend(View.prototype, {
     },
 
     hide: function(callback) {
-        this.$panel.removeClass(this.options.classes.base + '-show');
-        $('html').removeClass(this.options.classes.base + '-html');
         this._show = false;
 
-        Animate.do(this, this.getHidePosition());
+        var self = this;
+        Animate.do(this, this.getHidePosition(), function(){
+            self.$panel.removeClass(self.options.classes.base + '-show');
+            $('html').removeClass(self.options.classes.base + '-html');
+        });
 
         if($.isFunction(callback)){
             callback.call(this);
@@ -328,7 +330,7 @@ $.extend(View.prototype, {
     },
 
     setPosition: function(value) {
-        var style = this.makePositionStyle(value);
+        var style = this.makePositionStyle(value);console.info(style);
             this.$panel.css(style);
     }
 });
@@ -396,9 +398,8 @@ var Animate = {
         }
         view.$panel.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, duration, easing) {
-    	duration = duration ? duration : view.options.duration;
-        easing = easing ? easing : view.options.easing;
+    do: function(view, value, callback) {
+    	var duration = view.options.duration, easing = view.options.easing;
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -410,10 +411,15 @@ var Animate = {
             this.prepareTransition(view, property, duration, easing);
 
             view.$panel.one(Support.transition.end, function() {
+                if($.isFunction(callback)) {
+                	callback();
+                }
+
                 view.$panel.css(Support.transition, '');
             });
-
-            view.setPosition(value);
+            setTimeout(function(){
+            	view.setPosition(value);
+            }, 20);
         }
     }
 }

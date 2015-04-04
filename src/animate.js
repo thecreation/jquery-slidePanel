@@ -20,9 +20,8 @@ var Animate = {
         }
         view.$panel.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, duration, easing) {
-    	duration = duration ? duration : view.options.duration;
-        easing = easing ? easing : view.options.easing;
+    do: function(view, value, callback) {
+    	var duration = view.options.duration, easing = view.options.easing;
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -34,10 +33,15 @@ var Animate = {
             this.prepareTransition(view, property, duration, easing);
 
             view.$panel.one(Support.transition.end, function() {
+                if($.isFunction(callback)) {
+                	callback();
+                }
+
                 view.$panel.css(Support.transition, '');
             });
-
-            view.setPosition(value);
+            setTimeout(function(){
+            	view.setPosition(value);
+            }, 20);
         }
     }
 }
