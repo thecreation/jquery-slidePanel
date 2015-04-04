@@ -351,11 +351,7 @@ $.extend(View.prototype, {
         var value;
 
         if (this.options.useCssTransforms && Support.transform) {
-            if (this.options.useCssTransforms3d && Support.transform3d) {
-                value = convertMatrixToArray(this.$panel.css(Support.transform));
-            } else {
-                value = convertMatrixToArray(this.$panel.css(Support.transform));
-            }
+            value = convertMatrixToArray(this.$panel.css(Support.transform));
             if (!value) {
                 return 0;
             }
