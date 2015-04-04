@@ -61,7 +61,9 @@ $(document).ready(function(){
         $.slidePanel.show({
             content: '<div><h2>Title</h2><p>content here</p></div>'
         }, {
-            direction: 'top',
+            useCssTransforms3d: true,
+            useCssTransforms: true,
+            useCssTransitions: false,
             loadingAppendTo: 'body'
         });
     });

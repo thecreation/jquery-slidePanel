@@ -1,4 +1,7 @@
-
+function isPercentage(n) {
+    return typeof n === 'string' && n.indexOf('%') != -1;
+}
+    
 function convertMatrixToArray(value) {
     if (value && (value.substr(0, 6) == "matrix")) {
         return value.replace(/^.*\((.*)\)$/g, "$1").replace(/px/g, '').split(/, +/);

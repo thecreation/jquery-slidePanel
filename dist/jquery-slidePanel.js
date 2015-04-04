@@ -118,7 +118,10 @@ var Support = (function() {
     }
     return support;
 })();
-
+function isPercentage(n) {
+    return typeof n === 'string' && n.indexOf('%') != -1;
+}
+    
 function convertMatrixToArray(value) {
     if (value && (value.substr(0, 6) == "matrix")) {
         return value.replace(/^.*\((.*)\)$/g, "$1").replace(/px/g, '').split(/, +/);
@@ -258,7 +261,6 @@ $.extend(View.prototype, {
         this.loading = new Loading(this);
 
         this.setPosition(this.getHidePosition());
-
         this._build = true;
     },
 
@@ -266,11 +268,22 @@ $.extend(View.prototype, {
         switch(this.options.direction){
             case 'top':
             case 'left':
-                return '-100%';
+                return '-100';
             case 'bottom':
             case 'right':
-                return '100%';
+                return '100';
         }
+
+        // switch(this.options.direction){
+        //     case 'top':
+        //         return '-' + this.$panel.height();
+        //     case 'left':
+        //         return '-' + this.$panel.width();
+        //     case 'bottom':
+        //         return this.$panel.height();
+        //     case 'right':
+        //         return this.$panel.width();
+        // }
     },
 
     show: function(callback) {
@@ -292,6 +305,7 @@ $.extend(View.prototype, {
         this._show = false;
 
         var self = this;
+
         Animate.do(this, this.getHidePosition(), function(){
             self.$panel.removeClass(self.options.classes.base + '-show');
             $('html').removeClass(self.options.classes.base + '-html');
@@ -305,6 +319,10 @@ $.extend(View.prototype, {
     makePositionStyle: function(value) {
         var property, x = '0',
             y = '0';
+
+        if(!isPercentage(value)){
+            value = value + '%';
+        }
 
         if (this.options.useCssTransforms && Support.transform) {
             if(this.options.direction === 'left' || this.options.direction === 'right'){
@@ -329,8 +347,36 @@ $.extend(View.prototype, {
         return temp;
     },
 
+    getPosition: function() {
+        var value;
+
+        if (this.options.useCssTransforms && Support.transform) {
+            if (this.options.useCssTransforms3d && Support.transform3d) {
+                value = convertMatrixToArray(this.$panel.css(Support.transform));
+            } else {
+                value = convertMatrixToArray(this.$panel.css(Support.transform));
+            }
+            if (!value) {
+                return 0;
+            }
+
+            if(this.options.direction === 'left' || this.options.direction === 'right'){
+                value = value[12] || value[4];
+                value = (value/this.$panel.width())*100;
+            } else {
+                value = value[13] || value[5];
+                value = (value/this.$panel.height())*100;
+            }
+        } else {
+            value = this.$panel.css(this.options.direction);
+            value = parseFloat(value.replace('px', ''))
+        }
+
+        return value;
+    },
+
     setPosition: function(value) {
-        var style = this.makePositionStyle(value);console.info(style);
+        var style = this.makePositionStyle(value);
             this.$panel.css(style);
     }
 });
@@ -399,7 +445,7 @@ var Animate = {
         view.$panel.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
-    	var duration = view.options.duration, easing = view.options.easing;
+    	var duration = view.options.duration, easing = view.options.easing || 'ease';
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -420,6 +466,38 @@ var Animate = {
             setTimeout(function(){
             	view.setPosition(value);
             }, 20);
+        } else {
+        	var startTime = getTime();
+            var start = view.getPosition();
+            var end = value;
+
+            var run = function(time) {
+                var percent = (time - startTime) / view.options.duration;
+
+                if (percent > 1) {
+                    percent = 1;
+                }
+
+                percent = Easings[easing].fn(percent);
+
+
+                var current = parseFloat(start + percent * (end - start), 10);
+                view.setPosition(current);
+
+                if (percent === 1) {
+                    window.cancelAnimationFrame(self._frameId);
+                    self._frameId = null;
+
+                    if($.isFunction(callback)) {
+	                	callback();
+	                }
+
+                } else {
+                    self._frameId = window.requestAnimationFrame(run);
+                }
+            };
+
+            self._frameId = window.requestAnimationFrame(run);
         }
     }
 }

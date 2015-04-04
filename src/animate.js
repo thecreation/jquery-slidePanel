@@ -21,7 +21,7 @@ var Animate = {
         view.$panel.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
-    	var duration = view.options.duration, easing = view.options.easing;
+    	var duration = view.options.duration, easing = view.options.easing || 'ease';
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -42,6 +42,38 @@ var Animate = {
             setTimeout(function(){
             	view.setPosition(value);
             }, 20);
+        } else {
+        	var startTime = getTime();
+            var start = view.getPosition();
+            var end = value;
+
+            var run = function(time) {
+                var percent = (time - startTime) / view.options.duration;
+
+                if (percent > 1) {
+                    percent = 1;
+                }
+
+                percent = Easings[easing].fn(percent);
+
+
+                var current = parseFloat(start + percent * (end - start), 10);
+                view.setPosition(current);
+
+                if (percent === 1) {
+                    window.cancelAnimationFrame(self._frameId);
+                    self._frameId = null;
+
+                    if($.isFunction(callback)) {
+	                	callback();
+	                }
+
+                } else {
+                    self._frameId = window.requestAnimationFrame(run);
+                }
+            };
+
+            self._frameId = window.requestAnimationFrame(run);
         }
     }
 }
