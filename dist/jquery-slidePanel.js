@@ -243,7 +243,8 @@ SlidePanel.options = {
         base: 'slidePanel',
         loading: 'slidePanel-loading',
         content: 'slidePanel-content',
-        dragging: 'slidePanel-dragging'
+        dragging: 'slidePanel-dragging',
+        willClose: 'slidePanel-will-close',
     },
 
     template: function() {
@@ -689,16 +690,15 @@ $.extend(Drag.prototype, {
             return;
         }
 
-        var willCloseClass = this.options.classes.base + '-will-close';
         if (Math.abs(distance) > this.options.dragTolerance) {
             if (this._willClose !== true) {
                 this._willClose = true;
-                this._view.$panel.addClass(willCloseClass);
+                this._view.$panel.addClass(this.options.classes.willClose);
             }
         } else {
             if (this._willClose !== false) {
                 this._willClose = false;
-                this._view.$panel.removeClass(willCloseClass);
+                this._view.$panel.removeClass(this.options.classes.willClose);
             }
         }
 
@@ -719,6 +719,11 @@ $.extend(Drag.prototype, {
         $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
         this._view.$panel.removeClass(this.options.classes.dragging);
+
+        if (this._willClose === true) {
+            this._willClose = false;
+            this._view.$panel.removeClass(this.options.classes.willClose);
+        }
 
         if (Math.abs(distance) < this.options.dragTolerance) {
             this._view.show();

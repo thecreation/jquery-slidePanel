@@ -3,7 +3,8 @@ SlidePanel.options = {
         base: 'slidePanel',
         loading: 'slidePanel-loading',
         content: 'slidePanel-content',
-        dragging: 'slidePanel-dragging'
+        dragging: 'slidePanel-dragging',
+        willClose: 'slidePanel-will-close',
     },
 
     template: function() {
