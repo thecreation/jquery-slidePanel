@@ -1,6 +1,6 @@
 // Loading
-function Loading() { 
-	return this.initialize.apply(this, Array.prototype.slice.call(arguments)); 
+function Loading() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
 };
 
 $.extend(Loading.prototype, {
@@ -16,7 +16,7 @@ $.extend(Loading.prototype, {
 
         this.$dom = $(html);
 
-        switch(options.loadingAppendTo){
+        switch (options.loadingAppendTo) {
             case 'panel':
                 this.$dom.appendTo(this._view.$panel);
                 break;

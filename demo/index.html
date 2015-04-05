@@ -29,7 +29,6 @@
     <section>
         <h2>Basic</h2>
         <div class="example">
-            <a href="ajax.html" class="example-basic">basic</a>
             <a href="ajax.html" class="example-basic" data-direction="top">top</a>
             <a href="ajax.html" class="example-basic" data-direction="left">left</a>
             <a href="ajax.html" class="example-basic" data-direction="right">right</a>
@@ -39,7 +38,10 @@
     <section>
         <h2>Show</h2>
         <div class="example">
-            <button class="example-show">Show</button>
+            <button class="example-show" data-direction="top">top</button>
+            <button class="example-show" data-direction="left">left</button>
+            <button class="example-show" data-direction="right">right</button>
+            <button class="example-show" data-direction="bottom">bottom</button>
         </div>
     </section>
     <section>
@@ -56,13 +58,20 @@
 })();
 
 $(document).ready(function(){
-    $('.example-basic').slidePanel();
+    $('.example-basic').slidePanel({
+            useCssTransforms3d: true,
+            useCssTransforms: true,
+            useCssTransitions: true
+        });
     $('.example-show').on('click', function(){
+        var direction = $(this).data('direction');
+
         $.slidePanel.show({
             content: '<div><h2>Title</h2><p>content here</p></div>'
         }, {
-            useCssTransforms3d: true,
-            useCssTransforms: true,
+            direction: direction,
+            useCssTransforms3d: false,
+            useCssTransforms: false,
             useCssTransitions: false,
             loadingAppendTo: 'body'
         });

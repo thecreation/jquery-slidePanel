@@ -6,4 +6,4 @@
  * Licensed under the GPL license.
  */
 (function($, document, window, undefined) {
-    "use strict";
+        "use strict";

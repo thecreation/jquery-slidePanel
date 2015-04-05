@@ -19,19 +19,36 @@ var _SlidePanel = {
             this._states[state] = 0;
         }
 
-        this._states[state] ++;
+        this._states[state]++;
     },
 
     /**
      * Leaves a state.
      */
     leave: function(state) {
-        this._states[state] --;
+        this._states[state]--;
     },
 
-    show: function(object){
-        if(!(object instanceof Instance)){
-            switch(arguments.length) {
+    trigger: function() {
+
+    },
+
+    eventName: function(events) {
+        if (typeof events !== 'string' || events === '') {
+            return '.slidepanel';
+        }
+        events = events.split(' ');
+
+        var length = events.length;
+        for (var i = 0; i < length; i++) {
+            events[i] = events[i] + '.slidepanel';
+        }
+        return events.join(' ');
+    },
+
+    show: function(object) {
+        if (!(object instanceof Instance)) {
+            switch (arguments.length) {
                 case 0:
                     object = new Instance();
                     break;
@@ -44,15 +61,15 @@ var _SlidePanel = {
             }
         }
 
-        var view = this.getView(object.options), 
-            self = this, 
-            callback = function(){
+        var view = this.getView(object.options),
+            self = this,
+            callback = function() {
                 view.show();
                 self._current = view;
             };
 
-        if(view !== this._current){
-            if(this._current !== null){
+        if (view !== this._current) {
+            if (this._current !== null) {
                 this._current.hide(callback);
             } else {
                 callback();
@@ -63,17 +80,17 @@ var _SlidePanel = {
     getView: function(options) {
         var code = getHashCode(options);
 
-        if(this._views.hasOwnProperty(code)){
+        if (this._views.hasOwnProperty(code)) {
             return this._views[code];
         }
 
         return this._views[code] = new View(options);
     },
 
-    hide: function(){
-        if(this._current !== null){
+    hide: function() {
+        if (this._current !== null) {
             var self = this;
-            this._current.hide(function(){
+            this._current.hide(function() {
                 self._current = null;
             });
         }
