@@ -19,6 +19,10 @@ SlidePanel.options = {
         return '<div class="' + this.classes.loading + '"></div>';
     },
 
+    contentFilter: function(content) {
+        return content;
+    },
+
     useCssTransforms3d: true,
     useCssTransforms: true,
     useCssTransitions: true,
