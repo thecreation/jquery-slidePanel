@@ -37,6 +37,7 @@ module.exports = function(grunt) {
                     'src/view.js',
                     'src/loading.js',
                     'src/animate.js',
+                    'src/drag.js',
                     'src/instance.js',
 
                     'src/private.js',

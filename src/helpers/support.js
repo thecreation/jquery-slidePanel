@@ -87,5 +87,18 @@ var Support = (function() {
     } else {
         support.touch = false;
     }
+
+    if (window.PointerEvent || window.MSPointerEvent) {
+        support.pointer = true;
+    } else {
+        support.pointer = false;
+    }
+
+    support.prefixPointerEvent = function(pointerEvent) {
+        return window.MSPointerEvent ?
+            'MSPointer' + pointerEvent.charAt(9).toUpperCase() + pointerEvent.substr(10) :
+            pointerEvent;
+    }
+
     return support;
 })();

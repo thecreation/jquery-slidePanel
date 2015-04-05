@@ -2,7 +2,8 @@ SlidePanel.options = {
     classes: {
         base: 'slidePanel',
         loading: 'slidePanel-loading',
-        content: 'slidePanel-content'
+        content: 'slidePanel-content',
+        dragging: 'slidePanel-dragging'
     },
 
     template: function() {
@@ -18,6 +19,12 @@ SlidePanel.options = {
     useCssTransforms3d: true,
     useCssTransforms: true,
     useCssTransitions: true,
+
+    dragTolerance: 70,
+
+    mouseDrag: true,
+    touchDrag: true,
+    pointerDrag: true,
 
     direction: 'right', // top, bottom, left, right
     duration: '300',

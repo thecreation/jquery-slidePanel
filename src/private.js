@@ -29,6 +29,23 @@ var _SlidePanel = {
         this._states[state]--;
     },
 
+    trigger: function() {
+
+    },
+
+    eventName: function(events) {
+        if (typeof events !== 'string' || events === '') {
+            return '.slidepanel';
+        }
+        events = events.split(' ');
+
+        var length = events.length;
+        for (var i = 0; i < length; i++) {
+            events[i] = events[i] + '.slidepanel';
+        }
+        return events.join(' ');
+    },
+
     show: function(object) {
         if (!(object instanceof Instance)) {
             switch (arguments.length) {

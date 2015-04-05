@@ -6,14 +6,20 @@ function View() {
 $.extend(View.prototype, {
     initialize: function(options) {
         this.options = options;
-
-        // if(options.direction === 'top' || options.direction === 'bottom'){
-        //     this._axis = 'Y';
-        // } else {
-        //     this._axis = 'X';
-        // }
-
         this.build();
+    },
+
+    setLength: function() {
+        switch (this.options.direction) {
+            case 'top':
+            case 'bottom':
+                this._length = this.$panel.outerHeight();
+                break;
+            case 'left':
+            case 'right':
+                this._length = this.$panel.outerWidth();
+                break;
+        }
     },
 
     build: function() {
@@ -27,7 +33,13 @@ $.extend(View.prototype, {
 
         this.loading = new Loading(this);
 
+        this.setLength();
         this.setPosition(this.getHidePosition());
+
+        if (options.mouseDrag || options.touchDrag || options.pointerDrag) {
+            this.drag = new Drag(this);
+        }
+
         this._build = true;
     },
 
@@ -47,10 +59,10 @@ $.extend(View.prototype, {
             switch (options.direction) {
                 case 'top':
                 case 'bottom':
-                    return -(this.$panel.outerHeight() / $(window).height()) * 100;
+                    return -(this._length / $(window).height()) * 100;
                 case 'left':
                 case 'right':
-                    return -(this.$panel.outerWidth() / $(window).width()) * 100;
+                    return -(this._length / $(window).width()) * 100;
             }
         }
     },
@@ -92,7 +104,7 @@ $.extend(View.prototype, {
         var property, x = '0',
             y = '0';
 
-        if (!isPercentage(value)) {
+        if (!isPercentage(value) && !isPx(value)) {
             value = value + '%';
         }
 
@@ -118,7 +130,7 @@ $.extend(View.prototype, {
         return temp;
     },
 
-    getPosition: function() {
+    getPosition: function(px) {
         var value;
 
         if (this.options.useCssTransforms && Support.transform) {
@@ -133,17 +145,20 @@ $.extend(View.prototype, {
 
             if (this.options.direction === 'left' || this.options.direction === 'right') {
                 value = value[12] || value[4];
-                value = (value / this.$panel.width()) * 100;
+
             } else {
                 value = value[13] || value[5];
-                value = (value / this.$panel.height()) * 100;
             }
         } else {
             value = this.$panel.css(this.options.direction);
             value = parseFloat(value.replace('px', ''))
         }
 
-        return value;
+        if (px !== true) {
+            value = (value / this._length) * 100;
+        }
+
+        return parseFloat(value, 10);
     },
 
     setPosition: function(value) {

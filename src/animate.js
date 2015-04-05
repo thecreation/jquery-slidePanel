@@ -1,5 +1,5 @@
 var Animate = {
-    prepareTransition: function(view, property, duration, easing, delay) {
+    prepareTransition: function($el, property, duration, easing, delay) {
         var temp = [];
         if (property) {
             temp.push(property);
@@ -18,9 +18,9 @@ var Animate = {
         if (delay) {
             temp.push(delay);
         }
-        view.$panel.css(Support.transition, temp.join(' '));
+        $el.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, callback) {
+    do: function(view, value, before_callback, callback) {
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 
@@ -31,7 +31,10 @@ var Animate = {
         }
 
         if (view.options.useCssTransitions && Support.transition) {
-            this.prepareTransition(view, property, duration, easing);
+
+            setTimeout(function() {
+                self.prepareTransition(view.$panel, property, duration, easing);
+            }, 20);
 
             view.$panel.one(Support.transition.end, function() {
                 if ($.isFunction(callback)) {
@@ -42,7 +45,7 @@ var Animate = {
             });
             setTimeout(function() {
                 view.setPosition(value);
-            }, 200);
+            }, 20);
         } else {
             var startTime = getTime();
             var start = view.getPosition();
@@ -58,6 +61,7 @@ var Animate = {
                 percent = Easings[easing].fn(percent);
 
                 var current = parseFloat(start + percent * (end - start), 10);
+
                 view.setPosition(current);
 
                 if (percent === 1) {

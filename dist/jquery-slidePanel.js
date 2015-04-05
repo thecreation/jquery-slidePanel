@@ -130,11 +130,28 @@ var Support = (function() {
     } else {
         support.touch = false;
     }
+
+    if (window.PointerEvent || window.MSPointerEvent) {
+        support.pointer = true;
+    } else {
+        support.pointer = false;
+    }
+
+    support.prefixPointerEvent = function(pointerEvent) {
+        return window.MSPointerEvent ?
+            'MSPointer' + pointerEvent.charAt(9).toUpperCase() + pointerEvent.substr(10) :
+            pointerEvent;
+    }
+
     return support;
 })();
 
 function isPercentage(n) {
     return typeof n === 'string' && n.indexOf('%') != -1;
+}
+
+function isPx(n) {
+    return typeof n === 'string' && n.indexOf('px') != -1;
 }
 
 function convertMatrixToArray(value) {
@@ -225,7 +242,8 @@ SlidePanel.options = {
     classes: {
         base: 'slidePanel',
         loading: 'slidePanel-loading',
-        content: 'slidePanel-content'
+        content: 'slidePanel-content',
+        dragging: 'slidePanel-dragging'
     },
 
     template: function() {
@@ -242,6 +260,12 @@ SlidePanel.options = {
     useCssTransforms: true,
     useCssTransitions: true,
 
+    dragTolerance: 70,
+
+    mouseDrag: true,
+    touchDrag: true,
+    pointerDrag: true,
+
     direction: 'right', // top, bottom, left, right
     duration: '300',
     easing: 'ease' // linear, ease-in, ease-out, ease-in-out
@@ -255,14 +279,20 @@ function View() {
 $.extend(View.prototype, {
     initialize: function(options) {
         this.options = options;
-
-        // if(options.direction === 'top' || options.direction === 'bottom'){
-        //     this._axis = 'Y';
-        // } else {
-        //     this._axis = 'X';
-        // }
-
         this.build();
+    },
+
+    setLength: function() {
+        switch (this.options.direction) {
+            case 'top':
+            case 'bottom':
+                this._length = this.$panel.outerHeight();
+                break;
+            case 'left':
+            case 'right':
+                this._length = this.$panel.outerWidth();
+                break;
+        }
     },
 
     build: function() {
@@ -276,7 +306,13 @@ $.extend(View.prototype, {
 
         this.loading = new Loading(this);
 
+        this.setLength();
         this.setPosition(this.getHidePosition());
+
+        if (options.mouseDrag || options.touchDrag || options.pointerDrag) {
+            this.drag = new Drag(this);
+        }
+
         this._build = true;
     },
 
@@ -296,10 +332,10 @@ $.extend(View.prototype, {
             switch (options.direction) {
                 case 'top':
                 case 'bottom':
-                    return -(this.$panel.outerHeight() / $(window).height()) * 100;
+                    return -(this._length / $(window).height()) * 100;
                 case 'left':
                 case 'right':
-                    return -(this.$panel.outerWidth() / $(window).width()) * 100;
+                    return -(this._length / $(window).width()) * 100;
             }
         }
     },
@@ -341,7 +377,7 @@ $.extend(View.prototype, {
         var property, x = '0',
             y = '0';
 
-        if (!isPercentage(value)) {
+        if (!isPercentage(value) && !isPx(value)) {
             value = value + '%';
         }
 
@@ -367,7 +403,7 @@ $.extend(View.prototype, {
         return temp;
     },
 
-    getPosition: function() {
+    getPosition: function(px) {
         var value;
 
         if (this.options.useCssTransforms && Support.transform) {
@@ -382,17 +418,20 @@ $.extend(View.prototype, {
 
             if (this.options.direction === 'left' || this.options.direction === 'right') {
                 value = value[12] || value[4];
-                value = (value / this.$panel.width()) * 100;
+
             } else {
                 value = value[13] || value[5];
-                value = (value / this.$panel.height()) * 100;
             }
         } else {
             value = this.$panel.css(this.options.direction);
             value = parseFloat(value.replace('px', ''))
         }
 
-        return value;
+        if (px !== true) {
+            value = (value / this._length) * 100;
+        }
+
+        return parseFloat(value, 10);
     },
 
     setPosition: function(value) {
@@ -445,7 +484,7 @@ $.extend(Loading.prototype, {
 });
 
 var Animate = {
-    prepareTransition: function(view, property, duration, easing, delay) {
+    prepareTransition: function($el, property, duration, easing, delay) {
         var temp = [];
         if (property) {
             temp.push(property);
@@ -464,9 +503,9 @@ var Animate = {
         if (delay) {
             temp.push(delay);
         }
-        view.$panel.css(Support.transition, temp.join(' '));
+        $el.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, callback) {
+    do: function(view, value, before_callback, callback) {
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 
@@ -477,7 +516,10 @@ var Animate = {
         }
 
         if (view.options.useCssTransitions && Support.transition) {
-            this.prepareTransition(view, property, duration, easing);
+
+            setTimeout(function() {
+                self.prepareTransition(view.$panel, property, duration, easing);
+            }, 20);
 
             view.$panel.one(Support.transition.end, function() {
                 if ($.isFunction(callback)) {
@@ -488,7 +530,7 @@ var Animate = {
             });
             setTimeout(function() {
                 view.setPosition(value);
-            }, 200);
+            }, 20);
         } else {
             var startTime = getTime();
             var start = view.getPosition();
@@ -504,6 +546,7 @@ var Animate = {
                 percent = Easings[easing].fn(percent);
 
                 var current = parseFloat(start + percent * (end - start), 10);
+
                 view.setPosition(current);
 
                 if (percent === 1) {
@@ -523,6 +566,203 @@ var Animate = {
         }
     }
 }
+
+// Drag
+function Drag() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
+}
+
+$.extend(Drag.prototype, {
+    initialize: function(view) {
+        this._view = view;
+        this.options = view.options;
+        this._drag = {
+            time: null,
+            pointer: null
+        };
+
+        this.bindEvents();
+    },
+    bindEvents: function() {
+        var self = this;
+        var options = this.options,
+            $panel = this._view.$panel;
+
+        // dragTolerance: 70,
+
+        if (options.mouseDrag) {
+            $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
+            $panel.on(_SlidePanel.eventName('dragstart selectstart'), function() {
+                return false
+            });
+        }
+
+        if (options.touchDrag && Support.touch) {
+            $panel.on(_SlidePanel.eventName('touchstart'), $.proxy(this.onDragStart, this));
+            $panel.on(_SlidePanel.eventName('touchcancel'), $.proxy(this.onDragEnd, this));
+        }
+
+        if (options.pointerDrag && Support.pointer) {
+            $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), $.proxy(this.onDragStart, this));
+            $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), $.proxy(this.onDragEnd, this));
+        }
+    },
+
+    /**
+     * Handles `touchstart` and `mousedown` events.
+     */
+    onDragStart: function(event) {
+        var self = this;
+
+        if (event.which === 3) {
+            return;
+        }
+
+        var options = this.options;
+
+        this._view.$panel.addClass(this.options.classes.dragging);
+
+        this._position = this._view.getPosition(true);
+
+        this._drag.time = new Date().getTime();
+        this._drag.pointer = this.pointer(event);
+
+        var callback = function() {
+            _SlidePanel.enter('dragging');
+            _SlidePanel.trigger('drag');
+        }
+
+        if (options.mouseDrag) {
+            $(document).on(_SlidePanel.eventName('mouseup'), $.proxy(this.onDragEnd, this));
+
+            $(document).one(_SlidePanel.eventName('mousemove'), $.proxy(function() {
+                $(document).on(_SlidePanel.eventName('mousemove'), $.proxy(this.onDragMove, this));
+
+                callback();
+            }, this));
+        }
+
+        if (options.touchDrag && Support.touch) {
+            $(document).on(_SlidePanel.eventName('touchend'), $.proxy(this.onDragEnd, this));
+
+            $(document).one(_SlidePanel.eventName('touchmove'), $.proxy(function() {
+                $(document).on(_SlidePanel.eventName('touchmove'), $.proxy(this.onDragMove, this));
+
+                callback();
+            }, this));
+        }
+
+        if (options.pointerDrag && Support.pointer) {
+            $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), $.proxy(this.onDragEnd, this));
+
+            $(document).one(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(function() {
+                $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(this.onDragMove, this));
+
+                callback();
+            }, this));
+        }
+
+        $(document).on(_SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
+
+        event.preventDefault();
+    },
+
+    /**
+     * Handles the `touchmove` and `mousemove` events.
+     */
+    onDragMove: function(event) {
+        var distance = this.distance(this._drag.pointer, this.pointer(event));
+
+        if (!_SlidePanel.is('dragging')) {
+            return;
+        }
+
+        event.preventDefault();
+        this.move(distance);
+    },
+
+    /**
+     * Handles the `touchend` and `mouseup` events.
+     */
+    onDragEnd: function() {
+        $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
+
+        this._view.$panel.removeClass(this.options.classes.dragging);
+
+        if (!_SlidePanel.is('dragging')) {
+            return;
+        }
+
+        _SlidePanel.leave('dragging');
+        _SlidePanel.trigger('dragged');
+    },
+
+    /**
+     * Gets unified pointer coordinates from event.
+     * @returns {Object} - Contains `x` and `y` coordinates of current pointer position.
+     */
+    pointer: function(event) {
+        var result = {
+            x: null,
+            y: null
+        };
+
+        event = event.originalEvent || event || window.event;
+
+        event = event.touches && event.touches.length ?
+            event.touches[0] : event.changedTouches && event.changedTouches.length ?
+            event.changedTouches[0] : event;
+
+        if (event.pageX) {
+            result.x = event.pageX;
+            result.y = event.pageY;
+        } else {
+            result.x = event.clientX;
+            result.y = event.clientY;
+        }
+
+        return result;
+    },
+
+    /**distance
+     * Gets the distance of two pointer.
+     */
+    distance: function(first, second) {
+        var d = this.options.direction;
+        if (d === 'left' || d === 'right') {
+            return second.x - first.x;
+        } else {
+            return second.y - first.y;
+        }
+    },
+
+    move: function(value) {
+        // if(value < 0){
+        //     return;
+        // }
+        var position = this._position + value;
+
+        if (this.options.direction === 'right' || this.options.direction === 'bottom') {
+            if (position < 0) {
+                return;
+            }
+        } else {
+            if (position > 0) {
+                return;
+            }
+        }
+        if (this.options.useCssTransforms && this.options.useCssTransforms3d) {
+
+        }
+        if (!this.options.useCssTransforms && !this.options.useCssTransforms3d) {
+            if (this.options.direction === 'right' || this.options.direction === 'bottom') {
+                position = -position;
+            }
+        }
+
+        this._view.setPosition(position + 'px');
+    }
+});
 
 // Instance
 function Instance() {
@@ -589,6 +829,23 @@ var _SlidePanel = {
      */
     leave: function(state) {
         this._states[state]--;
+    },
+
+    trigger: function() {
+
+    },
+
+    eventName: function(events) {
+        if (typeof events !== 'string' || events === '') {
+            return '.slidepanel';
+        }
+        events = events.split(' ');
+
+        var length = events.length;
+        for (var i = 0; i < length; i++) {
+            events[i] = events[i] + '.slidepanel';
+        }
+        return events.join(' ');
     },
 
     show: function(object) {
