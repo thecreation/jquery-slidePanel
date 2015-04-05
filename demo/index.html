@@ -18,6 +18,14 @@
         <script src="js/toc.js"></script>
         <script src="js/prism.js"></script>
         <script src="../dist/jquery-slidePanel.js"></script>
+        <style type="text/css">
+            .slidePanel {
+                background: rgba(0,0,0,.2);
+            }
+            .slidePanel-will-close {
+                background: rgba(0,0,255,.2);
+            }
+        </style>
     </head>
 <body>
 <!--[if lt IE 7]>
@@ -42,6 +50,12 @@
             <button class="example-show" data-direction="left">left</button>
             <button class="example-show" data-direction="right">right</button>
             <button class="example-show" data-direction="bottom">bottom</button>
+        </div>
+    </section>
+    <section>
+        <h2>Ajax</h2>
+        <div class="example">
+            <button class="example-ajax">ajax</button>
         </div>
     </section>
     <section>
@@ -74,6 +88,15 @@ $(document).ready(function(){
             useCssTransforms: false,
             useCssTransitions: false,
             loadingAppendTo: 'body'
+        });
+    });
+
+    $('.example-ajax').on('click', function(){
+        $.slidePanel.show({
+            url: 'ajax.html',
+            settings: {
+                method: 'GET'
+            }
         });
     });
 

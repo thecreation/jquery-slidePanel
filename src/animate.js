@@ -21,6 +21,8 @@ var Animate = {
         $el.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
+        _SlidePanel.enter('animating');
+
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 
@@ -31,7 +33,6 @@ var Animate = {
         }
 
         if (view.options.useCssTransitions && Support.transition) {
-
             setTimeout(function() {
                 self.prepareTransition(view.$panel, property, duration, easing);
             }, 20);
@@ -42,6 +43,8 @@ var Animate = {
                 }
 
                 view.$panel.css(Support.transition, '');
+
+                _SlidePanel.leave('animating');
             });
             setTimeout(function() {
                 view.setPosition(value);
@@ -72,6 +75,7 @@ var Animate = {
                         callback();
                     }
 
+                    _SlidePanel.leave('animating');
                 } else {
                     self._frameId = window.requestAnimationFrame(run);
                 }

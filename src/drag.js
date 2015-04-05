@@ -108,6 +108,23 @@ $.extend(Drag.prototype, {
             return;
         }
 
+        var willCloseClass = this.options.classes.base + '-will-close';
+        if (Math.abs(distance) > this.options.dragTolerance) {
+            if (this._willClose !== true) {
+                this._willClose = true;
+                this._view.$panel.addClass(willCloseClass);
+            }
+        } else {
+            if (this._willClose !== false) {
+                this._willClose = false;
+                this._view.$panel.removeClass(willCloseClass);
+            }
+        }
+
+        if (!_SlidePanel.is('dragging')) {
+            return;
+        }
+
         event.preventDefault();
         this.move(distance);
     },
@@ -187,9 +204,7 @@ $.extend(Drag.prototype, {
                 return;
             }
         }
-        if (this.options.useCssTransforms && this.options.useCssTransforms3d) {
 
-        }
         if (!this.options.useCssTransforms && !this.options.useCssTransforms3d) {
             if (this.options.direction === 'right' || this.options.direction === 'bottom') {
                 position = -position;

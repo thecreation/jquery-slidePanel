@@ -16,6 +16,7 @@ $.extend(Instance.prototype, {
 
             object = {
                 url: $element.attr('href'),
+                settings: $element.data('settings') || {},
                 options: $element.data() || {}
             }
         }

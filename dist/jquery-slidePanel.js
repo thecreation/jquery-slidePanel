@@ -1,4 +1,4 @@
-/*! jQuery slidePanel - v0.1.0 - 2015-04-05
+/*! jQuery slidePanel - v0.1.0 - 2015-04-06
 * https://github.com/amazingSurge/jquery-slidePanel
 * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
@@ -340,6 +340,17 @@ $.extend(View.prototype, {
         }
     },
 
+    load: function(object) {
+        var self = this;
+        if (object.content) {
+            this.$content.html(object.content);
+        } else if (object.url) {
+            $.ajax(object.url, object.settings || {}).done(function(data) {
+                self.$content.html(data);
+            });
+        }
+    },
+
     show: function(callback) {
         this.build();
 
@@ -503,6 +514,8 @@ var Animate = {
         $el.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
+        _SlidePanel.enter('animating');
+
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 
@@ -513,7 +526,6 @@ var Animate = {
         }
 
         if (view.options.useCssTransitions && Support.transition) {
-
             setTimeout(function() {
                 self.prepareTransition(view.$panel, property, duration, easing);
             }, 20);
@@ -524,6 +536,8 @@ var Animate = {
                 }
 
                 view.$panel.css(Support.transition, '');
+
+                _SlidePanel.leave('animating');
             });
             setTimeout(function() {
                 view.setPosition(value);
@@ -554,6 +568,7 @@ var Animate = {
                         callback();
                     }
 
+                    _SlidePanel.leave('animating');
                 } else {
                     self._frameId = window.requestAnimationFrame(run);
                 }
@@ -674,6 +689,23 @@ $.extend(Drag.prototype, {
             return;
         }
 
+        var willCloseClass = this.options.classes.base + '-will-close';
+        if (Math.abs(distance) > this.options.dragTolerance) {
+            if (this._willClose !== true) {
+                this._willClose = true;
+                this._view.$panel.addClass(willCloseClass);
+            }
+        } else {
+            if (this._willClose !== false) {
+                this._willClose = false;
+                this._view.$panel.removeClass(willCloseClass);
+            }
+        }
+
+        if (!_SlidePanel.is('dragging')) {
+            return;
+        }
+
         event.preventDefault();
         this.move(distance);
     },
@@ -753,9 +785,7 @@ $.extend(Drag.prototype, {
                 return;
             }
         }
-        if (this.options.useCssTransforms && this.options.useCssTransforms3d) {
 
-        }
         if (!this.options.useCssTransforms && !this.options.useCssTransforms3d) {
             if (this.options.direction === 'right' || this.options.direction === 'bottom') {
                 position = -position;
@@ -784,6 +814,7 @@ $.extend(Instance.prototype, {
 
             object = {
                 url: $element.attr('href'),
+                settings: $element.data('settings') || {},
                 options: $element.data() || {}
             }
         }
@@ -868,7 +899,9 @@ var _SlidePanel = {
         var view = this.getView(object.options),
             self = this,
             callback = function() {
-                view.show();
+                view.show(function() {
+                    this.load(object);
+                });
                 self._current = view;
             };
 

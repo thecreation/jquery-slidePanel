@@ -67,6 +67,17 @@ $.extend(View.prototype, {
         }
     },
 
+    load: function(object) {
+        var self = this;
+        if (object.content) {
+            this.$content.html(object.content);
+        } else if (object.url) {
+            $.ajax(object.url, object.settings || {}).done(function(data) {
+                self.$content.html(data);
+            });
+        }
+    },
+
     show: function(callback) {
         this.build();
 
