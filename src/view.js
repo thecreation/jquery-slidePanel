@@ -59,10 +59,10 @@ $.extend(View.prototype, {
             switch (options.direction) {
                 case 'top':
                 case 'bottom':
-                    return -(this._length / $(window).height()) * 100;
+                    return parseFloat(-(this._length / $(window).height()) * 100, 10);
                 case 'left':
                 case 'right':
-                    return -(this._length / $(window).width()) * 100;
+                    return parseFloat(-(this._length / $(window).width()) * 100, 10);
             }
         }
     },
@@ -151,7 +151,8 @@ $.extend(View.prototype, {
             }
         } else {
             value = this.$panel.css(this.options.direction);
-            value = parseFloat(value.replace('px', ''))
+
+            value = parseFloat(value.replace('px', ''));
         }
 
         if (px !== true) {

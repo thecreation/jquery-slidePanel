@@ -20,13 +20,13 @@ SlidePanel.options = {
     useCssTransforms: true,
     useCssTransitions: true,
 
-    dragTolerance: 70,
+    dragTolerance: 90,
 
     mouseDrag: true,
     touchDrag: true,
     pointerDrag: true,
 
     direction: 'right', // top, bottom, left, right
-    duration: '300',
+    duration: '500',
     easing: 'ease' // linear, ease-in, ease-out, ease-in-out
 };

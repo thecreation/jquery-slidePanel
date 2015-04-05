@@ -20,7 +20,7 @@ var Animate = {
         }
         $el.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, before_callback, callback) {
+    do: function(view, value, callback) {
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 

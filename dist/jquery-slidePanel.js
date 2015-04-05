@@ -260,14 +260,14 @@ SlidePanel.options = {
     useCssTransforms: true,
     useCssTransitions: true,
 
-    dragTolerance: 70,
+    dragTolerance: 90,
 
     mouseDrag: true,
     touchDrag: true,
     pointerDrag: true,
 
     direction: 'right', // top, bottom, left, right
-    duration: '300',
+    duration: '500',
     easing: 'ease' // linear, ease-in, ease-out, ease-in-out
 };
 
@@ -332,10 +332,10 @@ $.extend(View.prototype, {
             switch (options.direction) {
                 case 'top':
                 case 'bottom':
-                    return -(this._length / $(window).height()) * 100;
+                    return parseFloat(-(this._length / $(window).height()) * 100, 10);
                 case 'left':
                 case 'right':
-                    return -(this._length / $(window).width()) * 100;
+                    return parseFloat(-(this._length / $(window).width()) * 100, 10);
             }
         }
     },
@@ -424,7 +424,8 @@ $.extend(View.prototype, {
             }
         } else {
             value = this.$panel.css(this.options.direction);
-            value = parseFloat(value.replace('px', ''))
+
+            value = parseFloat(value.replace('px', ''));
         }
 
         if (px !== true) {
@@ -505,7 +506,7 @@ var Animate = {
         }
         $el.css(Support.transition, temp.join(' '));
     },
-    do: function(view, value, before_callback, callback) {
+    do: function(view, value, callback) {
         var duration = view.options.duration,
             easing = view.options.easing || 'ease';
 
@@ -684,10 +685,18 @@ $.extend(Drag.prototype, {
     /**
      * Handles the `touchend` and `mouseup` events.
      */
-    onDragEnd: function() {
+    onDragEnd: function(event) {
+        var distance = this.distance(this._drag.pointer, this.pointer(event));
+
         $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
         this._view.$panel.removeClass(this.options.classes.dragging);
+
+        if (Math.abs(distance) < this.options.dragTolerance) {
+            this._view.show();
+        } else {
+            _SlidePanel.hide();
+        }
 
         if (!_SlidePanel.is('dragging')) {
             return;
@@ -737,9 +746,6 @@ $.extend(Drag.prototype, {
     },
 
     move: function(value) {
-        // if(value < 0){
-        //     return;
-        // }
         var position = this._position + value;
 
         if (this.options.direction === 'right' || this.options.direction === 'bottom') {

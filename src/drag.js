@@ -115,10 +115,18 @@ $.extend(Drag.prototype, {
     /**
      * Handles the `touchend` and `mouseup` events.
      */
-    onDragEnd: function() {
+    onDragEnd: function(event) {
+        var distance = this.distance(this._drag.pointer, this.pointer(event));
+
         $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
         this._view.$panel.removeClass(this.options.classes.dragging);
+
+        if (Math.abs(distance) < this.options.dragTolerance) {
+            this._view.show();
+        } else {
+            _SlidePanel.hide();
+        }
 
         if (!_SlidePanel.is('dragging')) {
             return;
@@ -168,9 +176,6 @@ $.extend(Drag.prototype, {
     },
 
     move: function(value) {
-        // if(value < 0){
-        //     return;
-        // }
         var position = this._position + value;
 
         if (this.options.direction === 'right' || this.options.direction === 'bottom') {
