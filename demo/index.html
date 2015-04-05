@@ -18,6 +18,11 @@
         <script src="js/toc.js"></script>
         <script src="js/prism.js"></script>
         <script src="../dist/jquery-slidePanel.js"></script>
+        <style type="text/css">
+        .slidePanel {
+            z-index: -1;
+        }
+        </style>
     </head>
 <body>
 <!--[if lt IE 7]>
@@ -29,7 +34,6 @@
     <section>
         <h2>Basic</h2>
         <div class="example">
-            <a href="ajax.html" class="example-basic">basic</a>
             <a href="ajax.html" class="example-basic" data-direction="top">top</a>
             <a href="ajax.html" class="example-basic" data-direction="left">left</a>
             <a href="ajax.html" class="example-basic" data-direction="right">right</a>
@@ -56,13 +60,17 @@
 })();
 
 $(document).ready(function(){
-    $('.example-basic').slidePanel();
+    $('.example-basic').slidePanel({
+            useCssTransforms3d: true,
+            useCssTransforms: true,
+            useCssTransitions: true
+        });
     $('.example-show').on('click', function(){
         $.slidePanel.show({
             content: '<div><h2>Title</h2><p>content here</p></div>'
         }, {
-            useCssTransforms3d: true,
-            useCssTransforms: true,
+            useCssTransforms3d: false,
+            useCssTransforms: false,
             useCssTransitions: false,
             loadingAppendTo: 'body'
         });

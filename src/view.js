@@ -1,6 +1,6 @@
 // View
-function View() { 
-	return this.initialize.apply(this, Array.prototype.slice.call(arguments));
+function View() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
 };
 
 $.extend(View.prototype, {
@@ -13,7 +13,6 @@ $.extend(View.prototype, {
         //     this._axis = 'X';
         // }
 
-        this._show = false;
         this.build();
     },
 
@@ -24,62 +23,67 @@ $.extend(View.prototype, {
 
         var html = options.template.call(options);
         this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
-        this.$content = this.$panel.find('.'+this.options.classes.content);
-        
+        this.$content = this.$panel.find('.' + this.options.classes.content);
+
         this.loading = new Loading(this);
 
         this.setPosition(this.getHidePosition());
         this._build = true;
     },
 
-    getHidePosition: function(){
-        switch(this.options.direction){
-            case 'top':
-            case 'left':
-                return '-100';
-            case 'bottom':
-            case 'right':
-                return '100';
-        }
+    getHidePosition: function() {
+        var options = this.options;
 
-        // switch(this.options.direction){
-        //     case 'top':
-        //         return '-' + this.$panel.height();
-        //     case 'left':
-        //         return '-' + this.$panel.width();
-        //     case 'bottom':
-        //         return this.$panel.height();
-        //     case 'right':
-        //         return this.$panel.width();
-        // }
+        if (options.useCssTransforms || options.useCssTransforms3d) {
+            switch (options.direction) {
+                case 'top':
+                case 'left':
+                    return '-100';
+                case 'bottom':
+                case 'right':
+                    return '100';
+            }
+        } else {
+            switch (options.direction) {
+                case 'top':
+                case 'bottom':
+                    return -(this.$panel.outerHeight() / $(window).height()) * 100;
+                case 'left':
+                case 'right':
+                    return -(this.$panel.outerWidth() / $(window).width()) * 100;
+            }
+        }
     },
 
     show: function(callback) {
         this.build();
 
+        _SlidePanel.enter('show');
+
         $('html').addClass(this.options.classes.base + '-html');
         this.$panel.addClass(this.options.classes.base + '-show');
 
-        this._show = true;
-
         Animate.do(this, 0);
 
-        if($.isFunction(callback)){
+        if ($.isFunction(callback)) {
             callback.call(this);
         }
     },
 
     hide: function(callback) {
-        this._show = false;
+        _SlidePanel.leave('show');
 
         var self = this;
 
-        Animate.do(this, this.getHidePosition(), function(){
+        Animate.do(this, this.getHidePosition(), function() {
             self.$panel.removeClass(self.options.classes.base + '-show');
-            $('html').removeClass(self.options.classes.base + '-html');
+
+            if (!_SlidePanel.is('show')) {
+                $('html').removeClass(self.options.classes.base + '-html');
+            }
         });
 
-        if($.isFunction(callback)){
+        if ($.isFunction(callback)) {
             callback.call(this);
         }
     },
@@ -88,12 +92,12 @@ $.extend(View.prototype, {
         var property, x = '0',
             y = '0';
 
-        if(!isPercentage(value)){
+        if (!isPercentage(value)) {
             value = value + '%';
         }
 
         if (this.options.useCssTransforms && Support.transform) {
-            if(this.options.direction === 'left' || this.options.direction === 'right'){
+            if (this.options.direction === 'left' || this.options.direction === 'right') {
                 x = value;
             } else {
                 y = value;
@@ -111,7 +115,6 @@ $.extend(View.prototype, {
         }
         var temp = {};
         temp[property] = value;
-
         return temp;
     },
 
@@ -128,12 +131,12 @@ $.extend(View.prototype, {
                 return 0;
             }
 
-            if(this.options.direction === 'left' || this.options.direction === 'right'){
+            if (this.options.direction === 'left' || this.options.direction === 'right') {
                 value = value[12] || value[4];
-                value = (value/this.$panel.width())*100;
+                value = (value / this.$panel.width()) * 100;
             } else {
                 value = value[13] || value[5];
-                value = (value/this.$panel.height())*100;
+                value = (value / this.$panel.height()) * 100;
             }
         } else {
             value = this.$panel.css(this.options.direction);
@@ -145,6 +148,6 @@ $.extend(View.prototype, {
 
     setPosition: function(value) {
         var style = this.makePositionStyle(value);
-            this.$panel.css(style);
+        this.$panel.css(style);
     }
 });

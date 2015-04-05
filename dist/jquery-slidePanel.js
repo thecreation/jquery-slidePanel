@@ -2,10 +2,10 @@
 * https://github.com/amazingSurge/jquery-slidePanel
 * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
-    "use strict";
+        "use strict";
 
-var SlidePanel = $.slidePanel = function(){
-	SlidePanel.show.apply( this, arguments );
+var SlidePanel = $.slidePanel = function() {
+    SlidePanel.show.apply(this, arguments);
 };
 
 if (!Date.now) {
@@ -40,6 +40,7 @@ if (/iP(ad|hone|od).*OS (6|7|8)/.test(window.navigator.userAgent) || !window.req
     };
     window.cancelAnimationFrame = clearTimeout;
 }
+
 var Support = (function() {
     var style = $('<support>').get(0).style,
         prefixes = ['webkit', 'Moz', 'O', 'ms'],
@@ -79,14 +80,27 @@ var Support = (function() {
     function test(property, prefixed) {
         var result = false,
             upper = property.charAt(0).toUpperCase() + property.slice(1);
-        $.each((property + ' ' + prefixes.join(upper + ' ') + upper).split(' '), function(i, property) {
-            if (style[property] !== undefined) {
-                result = prefixed ? property : true;
-                return false;
-            }
-        });
 
-        return result;
+        if (style[property] !== undefined) {
+            result = property;
+        }
+        if (!result) {
+            $.each(prefixes, function(i, prefix) {
+                if (style[prefix + upper] !== undefined) {
+                    result = '-' + prefix.toLowerCase() + '-' + upper;
+                    return false;
+                }
+            });
+        }
+
+        if (prefixed) {
+            return result;
+        }
+        if (result) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function prefixed(property) {
@@ -118,10 +132,11 @@ var Support = (function() {
     }
     return support;
 })();
+
 function isPercentage(n) {
     return typeof n === 'string' && n.indexOf('%') != -1;
 }
-    
+
 function convertMatrixToArray(value) {
     if (value && (value.substr(0, 6) == "matrix")) {
         return value.replace(/^.*\((.*)\)$/g, "$1").replace(/px/g, '').split(/, +/);
@@ -129,21 +144,23 @@ function convertMatrixToArray(value) {
     return false;
 }
 
-function getHashCode(object){
-  if(typeof object !=='string'){
-    object = JSON.stringify(object);
-  }
+function getHashCode(object) {
+    if (typeof object !== 'string') {
+        object = JSON.stringify(object);
+    }
 
-  var hash = 0, i, chr, len;
-  if (object.length == 0) return hash;
-  for (i = 0, len = object.length; i < len; i++) {
-    chr   = object.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
+    var hash = 0,
+        i, chr, len;
+    if (object.length == 0) return hash;
+    for (i = 0, len = object.length; i < len; i++) {
+        chr = object.charCodeAt(i);
+        hash = ((hash << 5) - hash) + chr;
+        hash |= 0; // Convert to 32bit integer
+    }
 
-  return hash;
+    return hash;
 }
+
 function easingBezier(mX1, mY1, mX2, mY2) {
     function a(aA1, aA2) {
         return 1.0 - 3.0 * aA2 + 3.0 * aA1;
@@ -205,34 +222,34 @@ var Easings = {
 };
 
 SlidePanel.options = {
-	classes: {
-		base: 'sidePanel',
-		loading: 'sidePanel-loading',
-		content: 'sidePanel-content'
-	},
+    classes: {
+        base: 'slidePanel',
+        loading: 'slidePanel-loading',
+        content: 'slidePanel-content'
+    },
 
-	template: function(){
-		return '<div class="'+this.classes.base+'"><div class="'+this.classes.content+'"></div></div>';
-	},
+    template: function() {
+        return '<div class="' + this.classes.base + '"><div class="' + this.classes.content + '"></div></div>';
+    },
 
-	loadingAppendTo: 'panel', // body, panel
+    loadingAppendTo: 'panel', // body, panel
 
-	loadingTemplate: function(){
-		return '<div class="'+this.classes.loading+'"></div>';
-	},
+    loadingTemplate: function() {
+        return '<div class="' + this.classes.loading + '"></div>';
+    },
 
-	useCssTransforms3d: true,
+    useCssTransforms3d: true,
     useCssTransforms: true,
     useCssTransitions: true,
 
-	direction: 'right', // top, bottom, left, right
-	duration: '300',
-	easing: 'ease' // linear, ease-in, ease-out, ease-in-out
+    direction: 'right', // top, bottom, left, right
+    duration: '300',
+    easing: 'ease' // linear, ease-in, ease-out, ease-in-out
 };
 
 // View
-function View() { 
-	return this.initialize.apply(this, Array.prototype.slice.call(arguments));
+function View() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
 };
 
 $.extend(View.prototype, {
@@ -245,7 +262,6 @@ $.extend(View.prototype, {
         //     this._axis = 'X';
         // }
 
-        this._show = false;
         this.build();
     },
 
@@ -256,62 +272,67 @@ $.extend(View.prototype, {
 
         var html = options.template.call(options);
         this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
-        this.$content = this.$panel.find('.'+this.options.classes.content);
-        
+        this.$content = this.$panel.find('.' + this.options.classes.content);
+
         this.loading = new Loading(this);
 
         this.setPosition(this.getHidePosition());
         this._build = true;
     },
 
-    getHidePosition: function(){
-        switch(this.options.direction){
-            case 'top':
-            case 'left':
-                return '-100';
-            case 'bottom':
-            case 'right':
-                return '100';
-        }
+    getHidePosition: function() {
+        var options = this.options;
 
-        // switch(this.options.direction){
-        //     case 'top':
-        //         return '-' + this.$panel.height();
-        //     case 'left':
-        //         return '-' + this.$panel.width();
-        //     case 'bottom':
-        //         return this.$panel.height();
-        //     case 'right':
-        //         return this.$panel.width();
-        // }
+        if (options.useCssTransforms || options.useCssTransforms3d) {
+            switch (options.direction) {
+                case 'top':
+                case 'left':
+                    return '-100';
+                case 'bottom':
+                case 'right':
+                    return '100';
+            }
+        } else {
+            switch (options.direction) {
+                case 'top':
+                case 'bottom':
+                    return -(this.$panel.outerHeight() / $(window).height()) * 100;
+                case 'left':
+                case 'right':
+                    return -(this.$panel.outerWidth() / $(window).width()) * 100;
+            }
+        }
     },
 
     show: function(callback) {
         this.build();
 
+        _SlidePanel.enter('show');
+
         $('html').addClass(this.options.classes.base + '-html');
         this.$panel.addClass(this.options.classes.base + '-show');
 
-        this._show = true;
-
         Animate.do(this, 0);
 
-        if($.isFunction(callback)){
+        if ($.isFunction(callback)) {
             callback.call(this);
         }
     },
 
     hide: function(callback) {
-        this._show = false;
+        _SlidePanel.leave('show');
 
         var self = this;
 
-        Animate.do(this, this.getHidePosition(), function(){
+        Animate.do(this, this.getHidePosition(), function() {
             self.$panel.removeClass(self.options.classes.base + '-show');
-            $('html').removeClass(self.options.classes.base + '-html');
+
+            if (!_SlidePanel.is('show')) {
+                $('html').removeClass(self.options.classes.base + '-html');
+            }
         });
 
-        if($.isFunction(callback)){
+        if ($.isFunction(callback)) {
             callback.call(this);
         }
     },
@@ -320,12 +341,12 @@ $.extend(View.prototype, {
         var property, x = '0',
             y = '0';
 
-        if(!isPercentage(value)){
+        if (!isPercentage(value)) {
             value = value + '%';
         }
 
         if (this.options.useCssTransforms && Support.transform) {
-            if(this.options.direction === 'left' || this.options.direction === 'right'){
+            if (this.options.direction === 'left' || this.options.direction === 'right') {
                 x = value;
             } else {
                 y = value;
@@ -343,7 +364,6 @@ $.extend(View.prototype, {
         }
         var temp = {};
         temp[property] = value;
-
         return temp;
     },
 
@@ -360,12 +380,12 @@ $.extend(View.prototype, {
                 return 0;
             }
 
-            if(this.options.direction === 'left' || this.options.direction === 'right'){
+            if (this.options.direction === 'left' || this.options.direction === 'right') {
                 value = value[12] || value[4];
-                value = (value/this.$panel.width())*100;
+                value = (value / this.$panel.width()) * 100;
             } else {
                 value = value[13] || value[5];
-                value = (value/this.$panel.height())*100;
+                value = (value / this.$panel.height()) * 100;
             }
         } else {
             value = this.$panel.css(this.options.direction);
@@ -377,12 +397,13 @@ $.extend(View.prototype, {
 
     setPosition: function(value) {
         var style = this.makePositionStyle(value);
-            this.$panel.css(style);
+        this.$panel.css(style);
     }
 });
+
 // Loading
-function Loading() { 
-	return this.initialize.apply(this, Array.prototype.slice.call(arguments)); 
+function Loading() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
 };
 
 $.extend(Loading.prototype, {
@@ -398,7 +419,7 @@ $.extend(Loading.prototype, {
 
         this.$dom = $(html);
 
-        switch(options.loadingAppendTo){
+        switch (options.loadingAppendTo) {
             case 'panel':
                 this.$dom.appendTo(this._view.$panel);
                 break;
@@ -422,8 +443,9 @@ $.extend(Loading.prototype, {
         this.$dom.removeClass(this.options.classes.loading + '-show');
     }
 });
+
 var Animate = {
-	prepareTransition: function(view, property, duration, easing, delay) {
+    prepareTransition: function(view, property, duration, easing, delay) {
         var temp = [];
         if (property) {
             temp.push(property);
@@ -445,7 +467,8 @@ var Animate = {
         view.$panel.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
-    	var duration = view.options.duration, easing = view.options.easing || 'ease';
+        var duration = view.options.duration,
+            easing = view.options.easing || 'ease';
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -457,17 +480,17 @@ var Animate = {
             this.prepareTransition(view, property, duration, easing);
 
             view.$panel.one(Support.transition.end, function() {
-                if($.isFunction(callback)) {
-                	callback();
+                if ($.isFunction(callback)) {
+                    callback();
                 }
 
                 view.$panel.css(Support.transition, '');
             });
-            setTimeout(function(){
-            	view.setPosition(value);
-            }, 20);
+            setTimeout(function() {
+                view.setPosition(value);
+            }, 200);
         } else {
-        	var startTime = getTime();
+            var startTime = getTime();
             var start = view.getPosition();
             var end = value;
 
@@ -480,7 +503,6 @@ var Animate = {
 
                 percent = Easings[easing].fn(percent);
 
-
                 var current = parseFloat(start + percent * (end - start), 10);
                 view.setPosition(current);
 
@@ -488,9 +510,9 @@ var Animate = {
                     window.cancelAnimationFrame(self._frameId);
                     self._frameId = null;
 
-                    if($.isFunction(callback)) {
-	                	callback();
-	                }
+                    if ($.isFunction(callback)) {
+                        callback();
+                    }
 
                 } else {
                     self._frameId = window.requestAnimationFrame(run);
@@ -503,38 +525,38 @@ var Animate = {
 }
 
 // Instance
-function Instance() { 
-	return this.initialize.apply(this, Array.prototype.slice.call(arguments)); 
+function Instance() {
+    return this.initialize.apply(this, Array.prototype.slice.call(arguments));
 };
 
 $.extend(Instance.prototype, {
     initialize: function(object) {
         var options = arguments[1] || {};
-        
+
         if (typeof object === 'string') {
-			object = {
-				url: object
-			};
-		} else if (object && object.nodeType == 1) {
-			var $element = $(object);
+            object = {
+                url: object
+            };
+        } else if (object && object.nodeType == 1) {
+            var $element = $(object);
 
-			object = {
-				url: $element.attr('href'),
-				options: $element.data() || {}
-			}
-		}
+            object = {
+                url: $element.attr('href'),
+                options: $element.data() || {}
+            }
+        }
 
-		if(object && object.options) {
-			object.options = $.extend(true, options, object.options);
-		} else {
-			object.options = options;
-		}
+        if (object && object.options) {
+            object.options = $.extend(true, options, object.options);
+        } else {
+            object.options = options;
+        }
 
-		object.options = $.extend(true, {}, SlidePanel.options, object.options);
+        object.options = $.extend(true, {}, SlidePanel.options, object.options);
 
-		$.extend(this, object);
+        $.extend(this, object);
 
-		return this;
+        return this;
     }
 });
 
@@ -559,19 +581,19 @@ var _SlidePanel = {
             this._states[state] = 0;
         }
 
-        this._states[state] ++;
+        this._states[state]++;
     },
 
     /**
      * Leaves a state.
      */
     leave: function(state) {
-        this._states[state] --;
+        this._states[state]--;
     },
 
-    show: function(object){
-        if(!(object instanceof Instance)){
-            switch(arguments.length) {
+    show: function(object) {
+        if (!(object instanceof Instance)) {
+            switch (arguments.length) {
                 case 0:
                     object = new Instance();
                     break;
@@ -584,15 +606,15 @@ var _SlidePanel = {
             }
         }
 
-        var view = this.getView(object.options), 
-            self = this, 
-            callback = function(){
+        var view = this.getView(object.options),
+            self = this,
+            callback = function() {
                 view.show();
                 self._current = view;
             };
 
-        if(view !== this._current){
-            if(this._current !== null){
+        if (view !== this._current) {
+            if (this._current !== null) {
                 this._current.hide(callback);
             } else {
                 callback();
@@ -603,22 +625,23 @@ var _SlidePanel = {
     getView: function(options) {
         var code = getHashCode(options);
 
-        if(this._views.hasOwnProperty(code)){
+        if (this._views.hasOwnProperty(code)) {
             return this._views[code];
         }
 
         return this._views[code] = new View(options);
     },
 
-    hide: function(){
-        if(this._current !== null){
+    hide: function() {
+        if (this._current !== null) {
             var self = this;
-            this._current.hide(function(){
+            this._current.hide(function() {
                 self._current = null;
             });
         }
     }
 };
+
 $.extend(SlidePanel, {
     is: function(state) {
         return _SlidePanel.is(state);
@@ -634,35 +657,36 @@ $.extend(SlidePanel, {
         return this;
     }
 });
+
 $.fn.slidePanel = function(options) {
-    if (typeof options === 'string') {
-        var method = options;
-        var method_arguments = Array.prototype.slice.call(arguments, 1);
-        if (/^\_/.test(method)) {
-            return false;
-        } else {
-            return this.each(function() {
-                var instance = $.data(this, 'slidePanel');
-                // if (instance && typeof SlidePanel[method] === 'function') {
-                //     SlidePanel[method].apply(instance, method_arguments);
-                // }
-            });
-        }
+if (typeof options === 'string') {
+    var method = options;
+    var method_arguments = Array.prototype.slice.call(arguments, 1);
+    if (/^\_/.test(method)) {
+        return false;
     } else {
         return this.each(function() {
-            if (!$.data(this, 'slidePanel')) {
-                $.data(this, 'slidePanel', new Instance(this, options));
-
-                $(this).on('click', function(e){
-                    var instance = $.data(this, 'slidePanel');
-                    _SlidePanel.show(instance);
-                    
-                    e.preventDefault();
-                    e.stopPropagation();
-                });
-            }
+            var instance = $.data(this, 'slidePanel');
+            // if (instance && typeof SlidePanel[method] === 'function') {
+            //     SlidePanel[method].apply(instance, method_arguments);
+            // }
         });
     }
+} else {
+    return this.each(function() {
+        if (!$.data(this, 'slidePanel')) {
+            $.data(this, 'slidePanel', new Instance(this, options));
+
+            $(this).on('click', function(e) {
+                var instance = $.data(this, 'slidePanel');
+                _SlidePanel.show(instance);
+
+                e.preventDefault();
+                e.stopPropagation();
+            });
+        }
+    });
+}
 };
 
 })(jQuery, document, window);

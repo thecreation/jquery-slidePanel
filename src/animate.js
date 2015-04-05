@@ -1,5 +1,5 @@
 var Animate = {
-	prepareTransition: function(view, property, duration, easing, delay) {
+    prepareTransition: function(view, property, duration, easing, delay) {
         var temp = [];
         if (property) {
             temp.push(property);
@@ -21,7 +21,8 @@ var Animate = {
         view.$panel.css(Support.transition, temp.join(' '));
     },
     do: function(view, value, callback) {
-    	var duration = view.options.duration, easing = view.options.easing || 'ease';
+        var duration = view.options.duration,
+            easing = view.options.easing || 'ease';
 
         var self = this,
             style = view.makePositionStyle(value);
@@ -33,17 +34,17 @@ var Animate = {
             this.prepareTransition(view, property, duration, easing);
 
             view.$panel.one(Support.transition.end, function() {
-                if($.isFunction(callback)) {
-                	callback();
+                if ($.isFunction(callback)) {
+                    callback();
                 }
 
                 view.$panel.css(Support.transition, '');
             });
-            setTimeout(function(){
-            	view.setPosition(value);
-            }, 20);
+            setTimeout(function() {
+                view.setPosition(value);
+            }, 200);
         } else {
-        	var startTime = getTime();
+            var startTime = getTime();
             var start = view.getPosition();
             var end = value;
 
@@ -56,7 +57,6 @@ var Animate = {
 
                 percent = Easings[easing].fn(percent);
 
-
                 var current = parseFloat(start + percent * (end - start), 10);
                 view.setPosition(current);
 
@@ -64,9 +64,9 @@ var Animate = {
                     window.cancelAnimationFrame(self._frameId);
                     self._frameId = null;
 
-                    if($.isFunction(callback)) {
-	                	callback();
-	                }
+                    if ($.isFunction(callback)) {
+                        callback();
+                    }
 
                 } else {
                     self._frameId = window.requestAnimationFrame(run);

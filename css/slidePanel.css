@@ -1,55 +1,56 @@
-.sidePanel {
+.slidePanel {
   position: fixed;
   background: rgba(0, 0, 0, 0.2);
   max-width: 100%;
   max-height: 100%;
   visibility: hidden;
 }
-.sidePanel-right,
-.sidePanel-left {
+.slidePanel-right,
+.slidePanel-left {
   height: 100%;
   width: 500px;
 }
 @media screen (max-width: 768px) {
-  .sidePanel-right,
-  .sidePanel-left {
+  .slidePanel-right,
+  .slidePanel-left {
     width: 100%;
   }
 }
-.sidePanel-top,
-.sidePanel-bottom {
+.slidePanel-top,
+.slidePanel-bottom {
   width: 100%;
   height: 300px;
 }
 @media screen (max-width: 768px) {
-  .sidePanel-top,
-  .sidePanel-bottom {
+  .slidePanel-top,
+  .slidePanel-bottom {
     height: 100%;
   }
 }
-.sidePanel-left {
+.slidePanel-left {
   top: 0;
   left: 0;
 }
-.sidePanel-right {
+.slidePanel-right {
   top: 0;
   right: 0;
 }
-.sidePanel-top {
+.slidePanel-top {
   top: 0;
   left: 0;
 }
-.sidePanel-bottom {
+.slidePanel-bottom {
   bottom: 0;
   left: 0;
 }
-.sidePanel-html {
+.slidePanel-html {
+  height: 100%;
+  overflow: hidden;
+}
+.slidePanel-html body {
   height: 100%;
 }
-.sidePanel-html body {
-  height: 100%;
-}
-.sidePanel-show {
+.slidePanel-show {
   visibility: visible;
 }
 .slidePanel-loading {

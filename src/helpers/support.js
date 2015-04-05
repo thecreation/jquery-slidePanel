@@ -37,14 +37,27 @@ var Support = (function() {
     function test(property, prefixed) {
         var result = false,
             upper = property.charAt(0).toUpperCase() + property.slice(1);
-        $.each((property + ' ' + prefixes.join(upper + ' ') + upper).split(' '), function(i, property) {
-            if (style[property] !== undefined) {
-                result = prefixed ? property : true;
-                return false;
-            }
-        });
 
-        return result;
+        if (style[property] !== undefined) {
+            result = property;
+        }
+        if (!result) {
+            $.each(prefixes, function(i, prefix) {
+                if (style[prefix + upper] !== undefined) {
+                    result = '-' + prefix.toLowerCase() + '-' + upper;
+                    return false;
+                }
+            });
+        }
+
+        if (prefixed) {
+            return result;
+        }
+        if (result) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     function prefixed(property) {
