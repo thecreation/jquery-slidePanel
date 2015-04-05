@@ -70,12 +70,10 @@ var _SlidePanel = {
                 self._current = view;
             };
 
-        if (view !== this._current) {
-            if (this._current !== null) {
-                this._current.hide(callback);
-            } else {
-                callback();
-            }
+        if (null !== this._current && view !== this._current) {
+            this._current.hide(callback);
+        } else {
+            callback();
         }
     },
 

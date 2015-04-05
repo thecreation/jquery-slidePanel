@@ -19,8 +19,6 @@ $.extend(Drag.prototype, {
         var options = this.options,
             $panel = this._view.$panel;
 
-        // dragTolerance: 70,
-
         if (options.mouseDrag) {
             $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
             $panel.on(_SlidePanel.eventName('dragstart selectstart'), function() {

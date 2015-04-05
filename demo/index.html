@@ -25,6 +25,12 @@
             .slidePanel-will-close {
                 background: rgba(0,0,255,.2);
             }
+            .slidePanel.skin1 {
+                background: rgba(100,0,0,.2);
+            }
+            .slidePanel.skin2 {
+                background: rgba(0,100,0,.2);
+            }
         </style>
     </head>
 <body>
@@ -59,6 +65,22 @@
         </div>
     </section>
     <section>
+        <h2>Group</h2>
+        <p>Switch Content in Some View</p>
+        <div class="example">
+            <a href="ajax.html" class="example-group">Content 1</a>
+            <a href="ajax2.html" class="example-group">Content 2</a>
+        </div>
+    </section>
+    <section>
+        <h2>Skin</h2>
+        <div class="example">
+            <a href="ajax.html" class="example-skin" data-skin="">no skin</a>
+            <a href="ajax.html" class="example-skin" data-skin="skin1">skin1</a>
+            <a href="ajax.html" class="example-skin" data-skin="skin2">skin2</a>
+        </div>
+    </section>
+    <section>
         <h2>Hide</h2>
         <div class="example">
             <button class="example-hide">Hide</button>
@@ -73,10 +95,10 @@
 
 $(document).ready(function(){
     $('.example-basic').slidePanel({
-            useCssTransforms3d: true,
-            useCssTransforms: true,
-            useCssTransitions: true
-        });
+        useCssTransforms3d: true,
+        useCssTransforms: true,
+        useCssTransitions: true
+    });
     $('.example-show').on('click', function(){
         var direction = $(this).data('direction');
 
@@ -90,6 +112,9 @@ $(document).ready(function(){
             loadingAppendTo: 'body'
         });
     });
+
+    $('.example-skin').slidePanel();
+    $('.example-group').slidePanel();
 
     $('.example-ajax').on('click', function(){
         $.slidePanel.show({

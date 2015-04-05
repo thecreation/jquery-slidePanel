@@ -1,4 +1,6 @@
 SlidePanel.options = {
+    skin: null,
+
     classes: {
         base: 'slidePanel',
         loading: 'slidePanel-loading',

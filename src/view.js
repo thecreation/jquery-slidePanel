@@ -29,6 +29,9 @@ $.extend(View.prototype, {
 
         var html = options.template.call(options);
         this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
+        if (options.skin) {
+            this.$panel.addClass(options.skin);
+        }
         this.$content = this.$panel.find('.' + this.options.classes.content);
 
         this.loading = new Loading(this);

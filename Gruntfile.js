@@ -71,7 +71,7 @@ module.exports = function(grunt) {
                 options: {
                     jshintrc: 'src/.jshintrc'
                 },
-                src: ['src/**/*.js']
+                src: '<%= concat.dist.dest %>'
             },
             test: {
                 options: {
@@ -83,7 +83,7 @@ module.exports = function(grunt) {
 
         // -- jsbeautifier config -----------------------------------------------------
         jsbeautifier: {
-            files: ['Gruntfile.js', "src/**/*.js", "test/**/*.js"],
+            files: ['Gruntfile.js', "src/**/*.js", "<%= concat.dist.dest %>", "test/**/*.js"],
             options: {
                 "indent_size": 4,
                 "indent_char": " ",
@@ -183,8 +183,8 @@ module.exports = function(grunt) {
     // Default task.
     grunt.registerTask('default', ['js', 'dist', 'css']);
 
-    grunt.registerTask('dist', ['clean', 'concat:dist', 'uglify']);
-    grunt.registerTask('js', ['jsbeautifier', 'jshint']);
+    grunt.registerTask('dist', ['clean', 'concat:dist', 'jsbeautifier', 'uglify']);
+    grunt.registerTask('js', ['concat:dist', 'jshint']);
     grunt.registerTask('css', ['less', 'autoprefixer']);
 
     grunt.registerTask('dev', ['watch:dist']);
