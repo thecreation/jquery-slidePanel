@@ -11,7 +11,8 @@
         <meta name="viewport" content="width=device-width">
 
         <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">      
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/spinner.css">   
         <link rel="stylesheet" href="../css/slidePanel.css">
 
         <script src="../libs/jquery/jquery.js"></script>
@@ -79,6 +80,11 @@ $(document).ready(function(){
         }, {
             contentFilter: function(data) {
                 return template(data);
+            },
+            loading: {
+                template: function(options) {
+                    return '<div class="' + options.classes.loading + '"><div class="spinner"></div></div>';
+                }
             },
             direction: 'right'
         });

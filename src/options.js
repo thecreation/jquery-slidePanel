@@ -3,20 +3,30 @@ SlidePanel.options = {
 
     classes: {
         base: 'slidePanel',
+        show: 'slidePanel-show',
         loading: 'slidePanel-loading',
         content: 'slidePanel-content',
         dragging: 'slidePanel-dragging',
         willClose: 'slidePanel-will-close',
     },
 
-    template: function() {
-        return '<div class="' + this.classes.base + '"><div class="' + this.classes.content + '"></div></div>';
+    template: function(options) {
+        return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '">' +
+            '<div class="' + options.classes.content + '"></div>' +
+            '</div>';
     },
 
-    loadingAppendTo: 'panel', // body, panel
-
-    loadingTemplate: function() {
-        return '<div class="' + this.classes.loading + '"></div>';
+    loading: {
+        appendTo: 'panel', // body, panel
+        template: function(options) {
+            return '<div class="' + options.classes.loading + '"></div>';
+        },
+        showCallback: function(options) {
+            this.$el.addClass(options.classes.loading + '-show');
+        },
+        hideCallback: function(options) {
+            this.$el.removeClass(options.classes.loading + '-show');
+        }
     },
 
     contentFilter: function(content) {

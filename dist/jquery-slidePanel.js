@@ -243,20 +243,30 @@
 
         classes: {
             base: 'slidePanel',
+            show: 'slidePanel-show',
             loading: 'slidePanel-loading',
             content: 'slidePanel-content',
             dragging: 'slidePanel-dragging',
             willClose: 'slidePanel-will-close',
         },
 
-        template: function() {
-            return '<div class="' + this.classes.base + '"><div class="' + this.classes.content + '"></div></div>';
+        template: function(options) {
+            return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '">' +
+                '<div class="' + options.classes.content + '"></div>' +
+                '</div>';
         },
 
-        loadingAppendTo: 'panel', // body, panel
-
-        loadingTemplate: function() {
-            return '<div class="' + this.classes.loading + '"></div>';
+        loading: {
+            appendTo: 'panel', // body, panel
+            template: function(options) {
+                return '<div class="' + options.classes.loading + '"></div>';
+            },
+            showCallback: function(options) {
+                this.$el.addClass(options.classes.loading + '-show');
+            },
+            hideCallback: function(options) {
+                this.$el.removeClass(options.classes.loading + '-show');
+            }
         },
 
         contentFilter: function(content) {
@@ -307,8 +317,8 @@
 
             var options = this.options;
 
-            var html = options.template.call(options);
-            this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
+            var html = options.template.call(this, options);
+            this.$panel = $(html).appendTo('body');
             if (options.skin) {
                 this.$panel.addClass(options.skin);
             }
@@ -350,22 +360,45 @@
             }
         },
 
+        empty: function() {
+            this.$content.empty();
+        },
+
         load: function(object) {
             var self = this,
                 options = object.options;
 
+            this.empty();
+
             function setContent(content) {
                 content = options.contentFilter.call(this, content);
                 self.$content.html(content);
+                self.hideLoading();
             }
 
             if (object.content) {
                 setContent(object.content);
             } else if (object.url) {
+                this.showLoading();
+
                 $.ajax(object.url, object.settings || {}).done(function(data) {
                     setContent(data);
                 });
             }
+        },
+
+        showLoading: function() {
+            var self = this;
+            this.loading.show(function() {
+                self._isLoading = true;
+            });
+        },
+
+        hideLoading: function() {
+            var self = this;
+            this.loading.hide(function() {
+                self._isLoading = false;
+            });
         },
 
         show: function(callback) {
@@ -374,7 +407,7 @@
             _SlidePanel.enter('show');
 
             $('html').addClass(this.options.classes.base + '-html');
-            this.$panel.addClass(this.options.classes.base + '-show');
+            this.$panel.addClass(this.options.classes.show);
 
             Animate.do(this, 0);
 
@@ -389,7 +422,7 @@
             var self = this;
 
             Animate.do(this, this.getHidePosition(), function() {
-                self.$panel.removeClass(self.options.classes.base + '-show');
+                self.$panel.removeClass(self.options.classes.show);
 
                 if (!_SlidePanel.is('show')) {
                     $('html').removeClass(self.options.classes.base + '-html');
@@ -478,20 +511,20 @@
 
         build: function() {
             if (this._build) return;
+
             var options = this._view.options;
-            var html = options.loadingTemplate.call(options);
+            var html = options.loading.template.call(this, options);
+            this.$el = $(html);
 
-            this.$dom = $(html);
-
-            switch (options.loadingAppendTo) {
+            switch (options.loading.appendTo) {
                 case 'panel':
-                    this.$dom.appendTo(this._view.$panel);
+                    this.$el.appendTo(this._view.$panel);
                     break;
                 case 'body':
-                    this.$dom.appendTo('body');
+                    this.$el.appendTo('body');
                     break;
                 default:
-                    this.$dom.appendTo(options.loadingAppendTo);
+                    this.$el.appendTo(options.loading.appendTo);
             }
 
             this._build = true;
@@ -499,12 +532,21 @@
 
         show: function(callback) {
             this.build();
+            var options = this._view.options;
+            options.loading.showCallback.call(this, options);
 
-            this.$dom.addClass(this.options.classes.loading + '-show');
+            if ($.isFunction(callback)) {
+                callback.call(this);
+            }
         },
 
         hide: function(callback) {
-            this.$dom.removeClass(this.options.classes.loading + '-show');
+            var options = this._view.options;
+            options.loading.hideCallback.call(this, options);
+
+            if ($.isFunction(callback)) {
+                callback.call(this);
+            }
         }
     });
 

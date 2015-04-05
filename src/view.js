@@ -27,8 +27,8 @@ $.extend(View.prototype, {
 
         var options = this.options;
 
-        var html = options.template.call(options);
-        this.$panel = $(html).addClass(options.classes.base + '-' + options.direction).appendTo('body');
+        var html = options.template.call(this, options);
+        this.$panel = $(html).appendTo('body');
         if (options.skin) {
             this.$panel.addClass(options.skin);
         }
@@ -70,22 +70,45 @@ $.extend(View.prototype, {
         }
     },
 
+    empty: function() {
+        this.$content.empty();
+    },
+
     load: function(object) {
         var self = this,
             options = object.options;
 
+        this.empty();
+
         function setContent(content) {
             content = options.contentFilter.call(this, content);
             self.$content.html(content);
+            self.hideLoading();
         }
 
         if (object.content) {
             setContent(object.content);
         } else if (object.url) {
+            this.showLoading();
+
             $.ajax(object.url, object.settings || {}).done(function(data) {
                 setContent(data);
             });
         }
+    },
+
+    showLoading: function() {
+        var self = this;
+        this.loading.show(function() {
+            self._isLoading = true;
+        });
+    },
+
+    hideLoading: function() {
+        var self = this;
+        this.loading.hide(function() {
+            self._isLoading = false;
+        });
     },
 
     show: function(callback) {
@@ -94,7 +117,7 @@ $.extend(View.prototype, {
         _SlidePanel.enter('show');
 
         $('html').addClass(this.options.classes.base + '-html');
-        this.$panel.addClass(this.options.classes.base + '-show');
+        this.$panel.addClass(this.options.classes.show);
 
         Animate.do(this, 0);
 
@@ -109,7 +132,7 @@ $.extend(View.prototype, {
         var self = this;
 
         Animate.do(this, this.getHidePosition(), function() {
-            self.$panel.removeClass(self.options.classes.base + '-show');
+            self.$panel.removeClass(self.options.classes.show);
 
             if (!_SlidePanel.is('show')) {
                 $('html').removeClass(self.options.classes.base + '-html');

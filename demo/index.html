@@ -11,7 +11,8 @@
         <meta name="viewport" content="width=device-width">
 
         <link rel="stylesheet" href="css/normalize.css">
-        <link rel="stylesheet" href="css/main.css">      
+        <link rel="stylesheet" href="css/main.css">
+        <link rel="stylesheet" href="css/spinner.css">      
         <link rel="stylesheet" href="../css/slidePanel.css">
 
         <script src="../libs/jquery/jquery.js"></script>
@@ -110,8 +111,7 @@ $(document).ready(function(){
             direction: direction,
             useCssTransforms3d: false,
             useCssTransforms: false,
-            useCssTransitions: false,
-            loadingAppendTo: 'body'
+            useCssTransitions: false
         });
     });
 
@@ -123,6 +123,12 @@ $(document).ready(function(){
             url: 'ajax.html',
             settings: {
                 method: 'GET'
+            }
+        },{
+            loading: {
+                template: function(options) {
+                    return '<div class="' + options.classes.loading + '"><div class="spinner"></div></div>';
+                }
             }
         });
     });

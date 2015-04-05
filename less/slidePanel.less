@@ -1,3 +1,4 @@
+// core
 .slidePanel {
 	position: fixed;
 	max-width: 100%;
@@ -57,5 +58,16 @@
 
 	&-show {
 		visibility: visible;
+	}
+}
+// spinner 
+.slidePanel-loading {
+	.spinner {
+		// make spinner center
+		position: absolute;
+		top: 50%;
+		left: 50%;
+
+		transform: translate(-50%, -50%);
 	}
 }

@@ -11,20 +11,20 @@ $.extend(Loading.prototype, {
 
     build: function() {
         if (this._build) return;
+
         var options = this._view.options;
-        var html = options.loadingTemplate.call(options);
+        var html = options.loading.template.call(this, options);
+        this.$el = $(html);
 
-        this.$dom = $(html);
-
-        switch (options.loadingAppendTo) {
+        switch (options.loading.appendTo) {
             case 'panel':
-                this.$dom.appendTo(this._view.$panel);
+                this.$el.appendTo(this._view.$panel);
                 break;
             case 'body':
-                this.$dom.appendTo('body');
+                this.$el.appendTo('body');
                 break;
             default:
-                this.$dom.appendTo(options.loadingAppendTo);
+                this.$el.appendTo(options.loading.appendTo);
         }
 
         this._build = true;
@@ -32,11 +32,20 @@ $.extend(Loading.prototype, {
 
     show: function(callback) {
         this.build();
+        var options = this._view.options;
+        options.loading.showCallback.call(this, options);
 
-        this.$dom.addClass(this.options.classes.loading + '-show');
+        if ($.isFunction(callback)) {
+            callback.call(this);
+        }
     },
 
     hide: function(callback) {
-        this.$dom.removeClass(this.options.classes.loading + '-show');
+        var options = this._view.options;
+        options.loading.hideCallback.call(this, options);
+
+        if ($.isFunction(callback)) {
+            callback.call(this);
+        }
     }
 });
