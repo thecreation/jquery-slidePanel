@@ -1,4 +1,4 @@
-/*! jQuery slidePanel - v0.1.0 - 2015-04-06
+/*! jQuery slidePanel - v0.1.0 - 2015-04-07
  * https://github.com/amazingSurge/jquery-slidePanel
  * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
@@ -250,6 +250,8 @@
             willClose: 'slidePanel-will-close',
         },
 
+        closeSelector: null,
+
         template: function(options) {
             return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '">' +
                 '<div class="' + options.classes.content + '"></div>' +
@@ -285,7 +287,19 @@
 
         direction: 'right', // top, bottom, left, right
         duration: '500',
-        easing: 'ease' // linear, ease-in, ease-out, ease-in-out
+        easing: 'ease', // linear, ease-in, ease-out, ease-in-out
+
+        // callbacks
+        beforeLoad: $.noop, // Before loading
+        afterLoad: $.noop, // After loading
+        beforeShow: $.noop, // Before opening
+        afterShow: $.noop, // After opening
+        onChange: $.noop, // On changing
+        beforeChange: $.noop, // Before changing
+        beforeHide: $.noop, // Before closing
+        afterHide: $.noop, // After closing
+        beforeDrag: $.noop, // Before drag
+        afterDrag: $.noop // After drag
     };
 
     // View
@@ -296,6 +310,10 @@
     $.extend(View.prototype, {
         initialize: function(options) {
             this.options = options;
+            this._instance = null;
+            this._showed = false;
+            this._isLoading = false;
+
             this.build();
         },
 
@@ -313,17 +331,25 @@
         },
 
         build: function() {
-            if (this._build) return;
+            if (this._builded) return;
 
             var options = this.options;
 
             var html = options.template.call(this, options);
+            var self = this;
+
             this.$panel = $(html).appendTo('body');
             if (options.skin) {
                 this.$panel.addClass(options.skin);
             }
             this.$content = this.$panel.find('.' + this.options.classes.content);
 
+            if (options.closeSelector) {
+                this.$panel.on('click', options.closeSelector, function() {
+                    self.hide();
+                    return false;
+                });
+            }
             this.loading = new Loading(this);
 
             this.setLength();
@@ -333,7 +359,7 @@
                 this.drag = new Drag(this);
             }
 
-            this._build = true;
+            this._builded = true;
         },
 
         getHidePosition: function() {
@@ -361,19 +387,26 @@
         },
 
         empty: function() {
+            this._instance = null;
             this.$content.empty();
         },
 
         load: function(object) {
-            var self = this,
-                options = object.options;
+            var self = this;
+            var options = object.options;
+            var previous = this._instance;
 
+            _SlidePanel.trigger(this, 'beforeLoad', object);
             this.empty();
 
             function setContent(content) {
                 content = options.contentFilter.call(this, content);
                 self.$content.html(content);
                 self.hideLoading();
+
+                self._instance = object;
+
+                _SlidePanel.trigger(self, 'afterLoad', object);
             }
 
             if (object.content) {
@@ -384,6 +417,8 @@
                 $.ajax(object.url, object.settings || {}).done(function(data) {
                     setContent(data);
                 });
+            } else {
+                setContent('');
             }
         },
 
@@ -405,33 +440,66 @@
             this.build();
 
             _SlidePanel.enter('show');
+            _SlidePanel.trigger(this, 'beforeShow');
 
             $('html').addClass(this.options.classes.base + '-html');
             this.$panel.addClass(this.options.classes.show);
 
-            Animate.do(this, 0);
+            var self = this;
+            Animate.do(this, 0, function() {
+                self._showed = true;
+                _SlidePanel.trigger(self, 'afterShow');
 
-            if ($.isFunction(callback)) {
-                callback.call(this);
-            }
+                if ($.isFunction(callback)) {
+                    callback.call(self);
+                }
+            });
+        },
+
+        change: function(object) {
+            _SlidePanel.trigger(this, 'beforeShow');
+
+            _SlidePanel.trigger(this, 'onChange', object, this._instance);
+
+            this.load(object);
+
+            _SlidePanel.trigger(this, 'afterShow');
+        },
+
+        revert: function(callback) {
+            var self = this;
+            Animate.do(this, 0, function() {
+                if ($.isFunction(callback)) {
+                    callback.call(self);
+                }
+            });
         },
 
         hide: function(callback) {
             _SlidePanel.leave('show');
+            _SlidePanel.trigger(this, 'beforeHide');
 
             var self = this;
 
             Animate.do(this, this.getHidePosition(), function() {
                 self.$panel.removeClass(self.options.classes.show);
+                self._showed = false;
+                self._instance = null;
+
+                if (_SlidePanel._current === self) {
+                    _SlidePanel._current = null;
+                }
 
                 if (!_SlidePanel.is('show')) {
                     $('html').removeClass(self.options.classes.base + '-html');
                 }
-            });
 
-            if ($.isFunction(callback)) {
-                callback.call(this);
-            }
+                if ($.isFunction(callback)) {
+                    callback.call(self);
+                }
+
+                _SlidePanel.trigger(self, 'afterHide');
+            });
         },
 
         makePositionStyle: function(value) {
@@ -510,7 +578,7 @@
         },
 
         build: function() {
-            if (this._build) return;
+            if (this._builded) return;
 
             var options = this._view.options;
             var html = options.loading.template.call(this, options);
@@ -527,7 +595,7 @@
                     this.$el.appendTo(options.loading.appendTo);
             }
 
-            this._build = true;
+            this._builded = true;
         },
 
         show: function(callback) {
@@ -698,7 +766,7 @@
 
             var callback = function() {
                 _SlidePanel.enter('dragging');
-                _SlidePanel.trigger('drag');
+                _SlidePanel.trigger(self._view, 'beforeDrag');
             }
 
             if (options.mouseDrag) {
@@ -781,18 +849,19 @@
                 this._view.$panel.removeClass(this.options.classes.willClose);
             }
 
-            if (Math.abs(distance) < this.options.dragTolerance) {
-                this._view.show();
-            } else {
-                _SlidePanel.hide();
-            }
-
             if (!_SlidePanel.is('dragging')) {
                 return;
             }
 
             _SlidePanel.leave('dragging');
-            _SlidePanel.trigger('dragged');
+
+            _SlidePanel.trigger(this._view, 'afterDrag');
+
+            if (Math.abs(distance) < this.options.dragTolerance) {
+                this._view.revert();
+            } else {
+                _SlidePanel.hide();
+            }
         },
 
         /**
@@ -925,8 +994,15 @@
             this._states[state]--;
         },
 
-        trigger: function() {
+        trigger: function(view, event) {
+            var method_arguments = Array.prototype.slice.call(arguments, 2),
+                data = [view].concat(method_arguments);
 
+            // event
+            $(document).trigger('slidePanel::' + event, data);
+            if ($.isFunction(view.options[event])) {
+                view.options[event].apply(view, method_arguments);
+            }
         },
 
         eventName: function(events) {
@@ -957,17 +1033,20 @@
                 }
             }
 
-            var view = this.getView(object.options),
-                self = this,
-                callback = function() {
-                    view.show(function() {
-                        this.load(object);
-                    });
-                    self._current = view;
-                };
-
-            if (null !== this._current && view !== this._current) {
-                this._current.hide(callback);
+            var view = this.getView(object.options);
+            var self = this;
+            var callback = function() {
+                view.show(function() {
+                    this.load(object);
+                });
+                self._current = view;
+            }
+            if (null !== this._current) {
+                if (view === this._current) {
+                    this._current.change(object);
+                } else {
+                    this._current.hide(callback);
+                }
             } else {
                 callback();
             }
@@ -983,12 +1062,15 @@
             return this._views[code] = new View(options);
         },
 
-        hide: function() {
-            if (this._current !== null) {
-                var self = this;
-                this._current.hide(function() {
-                    self._current = null;
-                });
+        hide: function(object) {
+            if (object) {
+                var view = this.getView(object.options);
+                view.hide();
+            } else {
+                if (this._current !== null) {
+                    var self = this;
+                    this._current.hide();
+                }
             }
         }
     };
@@ -1013,16 +1095,24 @@
         if (typeof options === 'string') {
             var method = options;
             var method_arguments = Array.prototype.slice.call(arguments, 1);
-            if (/^\_/.test(method)) {
-                return false;
-            } else {
-                return this.each(function() {
-                    var instance = $.data(this, 'slidePanel');
-                    // if (instance && typeof SlidePanel[method] === 'function') {
-                    //     SlidePanel[method].apply(instance, method_arguments);
-                    // }
-                });
-            }
+
+            return this.each(function() {
+                var instance = $.data(this, 'slidePanel');
+
+                if (!(instance instanceof Instance)) {
+                    instance = new Instance(this, method_arguments);
+                    $.data(this, 'slidePanel', instance);
+                }
+
+                switch (method) {
+                    case 'hide':
+                        _SlidePanel.hide(instance);
+                        break;
+                    case 'show':
+                        _SlidePanel.show(instance);
+                        break;
+                }
+            });
         } else {
             return this.each(function() {
                 if (!$.data(this, 'slidePanel')) {

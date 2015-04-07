@@ -29,8 +29,15 @@ var _SlidePanel = {
         this._states[state]--;
     },
 
-    trigger: function() {
+    trigger: function(view, event) {
+        var method_arguments = Array.prototype.slice.call(arguments, 2),
+            data = [view].concat(method_arguments);
 
+        // event
+        $(document).trigger('slidePanel::' + event, data);
+        if ($.isFunction(view.options[event])) {
+            view.options[event].apply(view, method_arguments);
+        }
     },
 
     eventName: function(events) {
@@ -61,17 +68,20 @@ var _SlidePanel = {
             }
         }
 
-        var view = this.getView(object.options),
-            self = this,
-            callback = function() {
-                view.show(function() {
-                    this.load(object);
-                });
-                self._current = view;
-            };
-
-        if (null !== this._current && view !== this._current) {
-            this._current.hide(callback);
+        var view = this.getView(object.options);
+        var self = this;
+        var callback = function() {
+            view.show(function() {
+                this.load(object);
+            });
+            self._current = view;
+        }
+        if (null !== this._current) {
+            if (view === this._current) {
+                this._current.change(object);
+            } else {
+                this._current.hide(callback);
+            }
         } else {
             callback();
         }
@@ -87,12 +97,15 @@ var _SlidePanel = {
         return this._views[code] = new View(options);
     },
 
-    hide: function() {
-        if (this._current !== null) {
-            var self = this;
-            this._current.hide(function() {
-                self._current = null;
-            });
+    hide: function(object) {
+        if (object) {
+            var view = this.getView(object.options);
+            view.hide();
+        } else {
+            if (this._current !== null) {
+                var self = this;
+                this._current.hide();
+            }
         }
     }
 };

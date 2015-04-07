@@ -6,6 +6,10 @@ function View() {
 $.extend(View.prototype, {
     initialize: function(options) {
         this.options = options;
+        this._instance = null;
+        this._showed = false;
+        this._isLoading = false;
+
         this.build();
     },
 
@@ -23,17 +27,25 @@ $.extend(View.prototype, {
     },
 
     build: function() {
-        if (this._build) return;
+        if (this._builded) return;
 
         var options = this.options;
 
         var html = options.template.call(this, options);
+        var self = this;
+
         this.$panel = $(html).appendTo('body');
         if (options.skin) {
             this.$panel.addClass(options.skin);
         }
         this.$content = this.$panel.find('.' + this.options.classes.content);
 
+        if (options.closeSelector) {
+            this.$panel.on('click', options.closeSelector, function() {
+                self.hide();
+                return false;
+            });
+        }
         this.loading = new Loading(this);
 
         this.setLength();
@@ -43,7 +55,7 @@ $.extend(View.prototype, {
             this.drag = new Drag(this);
         }
 
-        this._build = true;
+        this._builded = true;
     },
 
     getHidePosition: function() {
@@ -71,19 +83,26 @@ $.extend(View.prototype, {
     },
 
     empty: function() {
+        this._instance = null;
         this.$content.empty();
     },
 
     load: function(object) {
-        var self = this,
-            options = object.options;
+        var self = this;
+        var options = object.options;
+        var previous = this._instance;
 
+        _SlidePanel.trigger(this, 'beforeLoad', object);
         this.empty();
 
         function setContent(content) {
             content = options.contentFilter.call(this, content);
             self.$content.html(content);
             self.hideLoading();
+
+            self._instance = object;
+
+            _SlidePanel.trigger(self, 'afterLoad', object);
         }
 
         if (object.content) {
@@ -94,6 +113,8 @@ $.extend(View.prototype, {
             $.ajax(object.url, object.settings || {}).done(function(data) {
                 setContent(data);
             });
+        } else {
+            setContent('');
         }
     },
 
@@ -115,33 +136,66 @@ $.extend(View.prototype, {
         this.build();
 
         _SlidePanel.enter('show');
+        _SlidePanel.trigger(this, 'beforeShow');
 
         $('html').addClass(this.options.classes.base + '-html');
         this.$panel.addClass(this.options.classes.show);
 
-        Animate.do(this, 0);
+        var self = this;
+        Animate.do(this, 0, function() {
+            self._showed = true;
+            _SlidePanel.trigger(self, 'afterShow');
 
-        if ($.isFunction(callback)) {
-            callback.call(this);
-        }
+            if ($.isFunction(callback)) {
+                callback.call(self);
+            }
+        });
+    },
+
+    change: function(object) {
+        _SlidePanel.trigger(this, 'beforeShow');
+
+        _SlidePanel.trigger(this, 'onChange', object, this._instance);
+
+        this.load(object);
+
+        _SlidePanel.trigger(this, 'afterShow');
+    },
+
+    revert: function(callback) {
+        var self = this;
+        Animate.do(this, 0, function() {
+            if ($.isFunction(callback)) {
+                callback.call(self);
+            }
+        });
     },
 
     hide: function(callback) {
         _SlidePanel.leave('show');
+        _SlidePanel.trigger(this, 'beforeHide');
 
         var self = this;
 
         Animate.do(this, this.getHidePosition(), function() {
             self.$panel.removeClass(self.options.classes.show);
+            self._showed = false;
+            self._instance = null;
+
+            if (_SlidePanel._current === self) {
+                _SlidePanel._current = null;
+            }
 
             if (!_SlidePanel.is('show')) {
                 $('html').removeClass(self.options.classes.base + '-html');
             }
-        });
 
-        if ($.isFunction(callback)) {
-            callback.call(this);
-        }
+            if ($.isFunction(callback)) {
+                callback.call(self);
+            }
+
+            _SlidePanel.trigger(self, 'afterHide');
+        });
     },
 
     makePositionStyle: function(value) {

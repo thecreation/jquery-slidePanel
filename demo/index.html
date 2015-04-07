@@ -53,12 +53,22 @@
         </div>
     </section>
     <section>
-        <h2>Show</h2>
+        <h2>Without Transition</h2>
         <div class="example">
             <button class="example-show" data-direction="top">top</button>
             <button class="example-show" data-direction="left">left</button>
             <button class="example-show" data-direction="right">right</button>
             <button class="example-show" data-direction="bottom">bottom</button>
+        </div>
+    </section>
+    <section>
+        <h2>Easing</h2>
+        <div class="example">
+            <button class="example-easing" data-easing="ease">ease</button>
+            <button class="example-easing" data-easing="linear">linear</button>
+            <button class="example-easing" data-easing="ease-in">ease-in</button>
+            <button class="example-easing" data-easing="ease-out">ease-out</button>
+            <button class="example-easing" data-easing="ease-in-out">ease-in-out</button>
         </div>
     </section>
     <section>
@@ -83,10 +93,35 @@
             <a href="ajax.html" class="example-skin" data-skin="skin2">skin2</a>
         </div>
     </section>
+
     <section>
-        <h2>Hide</h2>
+        <h2>Close Selector</h2>
         <div class="example">
-            <button class="example-hide">Hide</button>
+            <button class="example-close">close</button>
+        </div>
+    </section>
+
+    <section>
+        <h2>Global Api</h2>
+        <div class="example">
+            <button class="example-api-show">Show</button>
+            <button class="example-api-hide">Hide</button>
+        </div>
+    </section>
+
+    <section>
+        <h2>Selector Call</h2>
+        <div class="example">
+            <a href="ajax.html" class="example-instance">instance</a>
+            <button class="example-instance-show">Show</button>
+            <button class="example-instance-hide">Hide</button>
+        </div>
+    </section>
+
+    <section>
+        <h2>Callbacks</h2>
+        <div class="example">
+            <button class="example-callbacks">Callbacks</button>
         </div>
     </section>
 </div>
@@ -102,6 +137,7 @@ $(document).ready(function(){
         useCssTransforms: true,
         useCssTransitions: true
     });
+
     $('.example-show').on('click', function(){
         var direction = $(this).data('direction');
 
@@ -115,8 +151,54 @@ $(document).ready(function(){
         });
     });
 
+    $('.example-close').on('click', function(){
+        $.slidePanel.show({
+            content: '<div><h2>Title</h2><p>content here</p><a href="#" class="close">click to close</a></div>'
+        }, {
+            closeSelector: '.close'
+        });
+    });
+
+    $('.example-easing').on('click', function(){
+        var easing = $(this).data('easing');
+
+        $.slidePanel.show({
+            content: '<div><h2>Title</h2><p>content here</p></div>'
+        }, {
+            easing: easing
+        });
+    });
+
     $('.example-skin').slidePanel();
-    $('.example-group').slidePanel();
+    $('.example-group').slidePanel({
+        beforeLoad: function(coming, previous){
+            console.info('beforeLoad');
+        },
+        afterLoad: function(coming, previous){
+            console.info('afterLoad');
+        },
+        onChange: function(coming, previous){
+            console.info('onChange');
+        },
+        beforeShow: function(){
+            console.info('beforeShow');
+        },
+        afterShow: function(){
+            console.info('afterShow');
+        },
+        beforeHide: function(){
+            console.info('beforeHide');
+        },
+        afterHide: function(){
+            console.info('afterHide');
+        },
+        beforeDrag: function(){
+            console.info('beforeDrag');
+        },
+        afterDrag: function(){
+            console.info('afterDrag');
+        }
+    });
 
     $('.example-ajax').on('click', function(){
         $.slidePanel.show({
@@ -133,8 +215,60 @@ $(document).ready(function(){
         });
     });
 
-    $('.example-hide').on('click', function(){
+    $('.example-api-show').on('click', function(){
+        $.slidePanel.show({
+            url: 'ajax.html',
+            settings: {
+                method: 'GET'
+            }
+        });
+    });
+    $('.example-api-hide').on('click', function(){
         $.slidePanel.hide();
+    });
+
+    $('.example-instance').slidePanel();
+    
+    $('.example-instance-hide').on('click', function(){
+        $('.example-instance').slidePanel('hide');
+    });
+
+    $('.example-instance-show').on('click', function(){
+        $('.example-instance').slidePanel('show');
+    });
+
+    $('.example-callbacks').on('click', function(){
+        $.slidePanel.show({
+            url: 'ajax.html'
+        }, {
+            beforeLoad: function(coming, previous){
+                console.info('beforeLoad');
+            },
+            afterLoad: function(coming, previous){
+                console.info('afterLoad');
+            },
+            onChange: function(coming, previous){
+                console.info('onChange');
+            },
+            beforeShow: function(){
+                console.info('beforeShow');
+            },
+            afterShow: function(){
+                console.info('afterShow');
+            },
+            beforeHide: function(){
+                console.info('beforeHide');
+            },
+            afterHide: function(){
+                console.info('afterHide');
+            },
+            beforeDrag: function(){
+                console.info('beforeDrag');
+            },
+            afterDrag: function(){
+                console.info('afterDrag');
+            }
+        });
     });
 });
 </script>

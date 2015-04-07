@@ -58,7 +58,7 @@ $.extend(Drag.prototype, {
 
         var callback = function() {
             _SlidePanel.enter('dragging');
-            _SlidePanel.trigger('drag');
+            _SlidePanel.trigger(self._view, 'beforeDrag');
         }
 
         if (options.mouseDrag) {
@@ -141,18 +141,19 @@ $.extend(Drag.prototype, {
             this._view.$panel.removeClass(this.options.classes.willClose);
         }
 
-        if (Math.abs(distance) < this.options.dragTolerance) {
-            this._view.show();
-        } else {
-            _SlidePanel.hide();
-        }
-
         if (!_SlidePanel.is('dragging')) {
             return;
         }
 
         _SlidePanel.leave('dragging');
-        _SlidePanel.trigger('dragged');
+
+        _SlidePanel.trigger(this._view, 'afterDrag');
+
+        if (Math.abs(distance) < this.options.dragTolerance) {
+            this._view.revert();
+        } else {
+            _SlidePanel.hide();
+        }
     },
 
     /**

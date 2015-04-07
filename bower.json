@@ -1,7 +1,7 @@
 {
-  "name": "jquery-plugin",
+  "name": "jquery-slidePanel",
   "version": "0.1.0",
-  "main": "dist/jquery-plugin.js",
+  "main": "dist/jquery-slidePanel.js",
   "copyright": "amazingSurge",
   "license": "GPL",
   "ignore": [

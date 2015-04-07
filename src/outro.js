@@ -2,16 +2,24 @@ $.fn.slidePanel = function(options) {
 if (typeof options === 'string') {
     var method = options;
     var method_arguments = Array.prototype.slice.call(arguments, 1);
-    if (/^\_/.test(method)) {
-        return false;
-    } else {
-        return this.each(function() {
-            var instance = $.data(this, 'slidePanel');
-            // if (instance && typeof SlidePanel[method] === 'function') {
-            //     SlidePanel[method].apply(instance, method_arguments);
-            // }
-        });
-    }
+
+    return this.each(function() {
+        var instance = $.data(this, 'slidePanel');
+
+        if (!(instance instanceof Instance)) {
+            instance = new Instance(this, method_arguments);
+            $.data(this, 'slidePanel', instance);
+        }
+
+        switch (method) {
+            case 'hide':
+                _SlidePanel.hide(instance);
+                break;
+            case 'show':
+                _SlidePanel.show(instance);
+                break;
+        }
+    });
 } else {
     return this.each(function() {
         if (!$.data(this, 'slidePanel')) {

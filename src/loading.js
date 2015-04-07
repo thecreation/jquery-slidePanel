@@ -10,7 +10,7 @@ $.extend(Loading.prototype, {
     },
 
     build: function() {
-        if (this._build) return;
+        if (this._builded) return;
 
         var options = this._view.options;
         var html = options.loading.template.call(this, options);
@@ -27,7 +27,7 @@ $.extend(Loading.prototype, {
                 this.$el.appendTo(options.loading.appendTo);
         }
 
-        this._build = true;
+        this._builded = true;
     },
 
     show: function(callback) {
