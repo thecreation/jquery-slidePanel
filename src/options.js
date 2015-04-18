@@ -41,6 +41,7 @@ SlidePanel.options = {
 
     dragTolerance: 90,
 
+    mouseDragHandler: null,
     mouseDrag: true,
     touchDrag: true,
     pointerDrag: true,

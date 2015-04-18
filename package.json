@@ -1,8 +1,8 @@
 {
   "name": "jquery-slidePanel",
   "title": "jQuery slidePanel",
-  "description": "a jquery slidePanel",
-  "version": "0.1.0",
+  "description": "a jquery slidePanel plugin",
+  "version": "0.2.0",
   "homepage": "https://github.com/amazingSurge/jquery-slidePanel",
   "author": {
     "name": "amazingSurge",

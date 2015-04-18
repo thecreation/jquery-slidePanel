@@ -93,7 +93,25 @@
             <a href="ajax.html" class="example-skin" data-skin="skin2">skin2</a>
         </div>
     </section>
-
+    <section>
+        <h2>Mouse Drag Handler</h2>
+        <div class="example">
+            <button class="example-handler">show</button>
+        </div>
+        <style type="text/css">
+            .handler {
+                width: 10px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                background: rgba(255, 100, 255, 0.1);
+            }
+            .handler:hover {
+                background: rgba(255, 100, 255, 0.5);
+            }
+        </style>
+    </section>
     <section>
         <h2>Close Selector</h2>
         <div class="example">
@@ -148,6 +166,14 @@ $(document).ready(function(){
             useCssTransforms3d: false,
             useCssTransforms: false,
             useCssTransitions: false
+        });
+    });
+
+    $('.example-handler').on('click', function(){
+        $.slidePanel.show({
+            content: '<div><h2>Title</h2><p>content here</p></div><div class="handler"></div>'
+        }, {
+            mouseDragHandler: '.handler'
         });
     });
 

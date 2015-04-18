@@ -62,6 +62,12 @@ $.extend(Drag.prototype, {
         }
 
         if (options.mouseDrag) {
+            if (options.mouseDragHandler) {
+                if (!$(event.target).is(options.mouseDragHandler) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+                    return;
+                }
+            }
+
             $(document).on(_SlidePanel.eventName('mouseup'), $.proxy(this.onDragEnd, this));
 
             $(document).one(_SlidePanel.eventName('mousemove'), $.proxy(function() {

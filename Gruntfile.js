@@ -72,18 +72,12 @@ module.exports = function(grunt) {
                     jshintrc: 'src/.jshintrc'
                 },
                 src: '<%= concat.dist.dest %>'
-            },
-            test: {
-                options: {
-                    jshintrc: 'test/.jshintrc'
-                },
-                src: ['test/**/*.js']
-            },
+            }
         },
 
         // -- jsbeautifier config -----------------------------------------------------
         jsbeautifier: {
-            files: ['Gruntfile.js', "src/**/*.js", "<%= concat.dist.dest %>", "test/**/*.js"],
+            files: ['Gruntfile.js', "src/**/*.js", "<%= concat.dist.dest %>"],
             options: {
                 "indent_size": 4,
                 "indent_char": " ",
@@ -108,18 +102,10 @@ module.exports = function(grunt) {
                 files: '<%= jshint.gruntfile.src %>',
                 tasks: ['jshint:gruntfile']
             },
-            dist: {
+            src: {
                 files: '<%= concat.dist.src %>',
                 tasks: ['concat:dist']
-            },
-            src: {
-                files: '<%= jshint.src.src %>',
-                tasks: ['jshint:src', 'qunit']
-            },
-            test: {
-                files: '<%= jshint.test.src %>',
-                tasks: ['jshint:test', 'qunit']
-            },
+            }
         },
 
         // -- less config ------------------------------------------------------------
@@ -185,9 +171,9 @@ module.exports = function(grunt) {
 
     grunt.registerTask('dist', ['clean', 'concat:dist', 'jsbeautifier', 'uglify']);
     grunt.registerTask('js', ['concat:dist', 'jshint']);
-    grunt.registerTask('css', ['less', 'autoprefixer']);
+    grunt.registerTask('css', ['less', 'autoprefixer', 'csscomb']);
 
-    grunt.registerTask('dev', ['watch:dist']);
+    grunt.registerTask('dev', ['watch:src']);
 
     grunt.registerTask('version', [
         'replace:bower'
