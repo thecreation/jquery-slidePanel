@@ -48,7 +48,7 @@ function easingBezier(mX1, mY1, mX2, mY2) {
             }
         }
     }
-};
+}
 
 var Easings = {
     'ease': easingBezier(0.25, 0.1, 0.25, 1.0),

@@ -71,9 +71,8 @@ var _SlidePanel = {
         var view = this.getView(object.options);
         var self = this;
         var callback = function() {
-            view.show(function() {
-                this.load(object);
-            });
+            view.show();
+            view.load(object);
             self._current = view;
         }
         if (null !== this._current) {
