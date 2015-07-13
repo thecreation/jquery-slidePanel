@@ -39,7 +39,7 @@ SlidePanel.options = {
     useCssTransforms: true,
     useCssTransitions: true,
 
-    dragTolerance: 90,
+    dragTolerance: 150,
 
     mouseDragHandler: null,
     mouseDrag: true,

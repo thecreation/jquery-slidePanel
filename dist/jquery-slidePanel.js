@@ -1,4 +1,4 @@
-/*! jQuery slidePanel - v0.2.0 - 2015-04-19
+/*! jQuery slidePanel - v0.2.1 - 2015-07-13
  * https://github.com/amazingSurge/jquery-slidePanel
  * Copyright (c) 2015 amazingSurge; Licensed GPL */
 (function($, document, window, undefined) {
@@ -279,7 +279,7 @@
         useCssTransforms: true,
         useCssTransitions: true,
 
-        dragTolerance: 90,
+        dragTolerance: 150,
 
         mouseDragHandler: null,
         mouseDrag: true,
@@ -731,6 +731,11 @@
             if (options.mouseDrag) {
                 $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
                 $panel.on(_SlidePanel.eventName('dragstart selectstart'), function() {
+                    if (options.mouseDragHandler) {
+                        if (!$(event.target).is(options.mouseDragHandler) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+                            return;
+                        }
+                    }
                     return false
                 });
             }

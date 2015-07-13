@@ -22,6 +22,11 @@ $.extend(Drag.prototype, {
         if (options.mouseDrag) {
             $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
             $panel.on(_SlidePanel.eventName('dragstart selectstart'), function() {
+                if (options.mouseDragHandler) {
+                    if (!$(event.target).is(options.mouseDragHandler) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+                        return;
+                    }
+                }
                 return false
             });
         }
