@@ -20,7 +20,7 @@ function getHashCode(object) {
 
     var hash = 0,
         i, chr, len;
-    if (object.length == 0) return hash;
+    if (object.length === 0) return hash;
     for (i = 0, len = object.length; i < len; i++) {
         chr = object.charCodeAt(i);
         hash = ((hash << 5) - hash) + chr;

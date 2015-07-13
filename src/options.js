@@ -7,7 +7,7 @@ SlidePanel.options = {
         loading: 'slidePanel-loading',
         content: 'slidePanel-content',
         dragging: 'slidePanel-dragging',
-        willClose: 'slidePanel-will-close',
+        willClose: 'slidePanel-will-close'
     },
 
     closeSelector: null,

@@ -1,7 +1,7 @@
 // View
 function View() {
     return this.initialize.apply(this, Array.prototype.slice.call(arguments));
-};
+}
 
 $.extend(View.prototype, {
     initialize: function(options) {

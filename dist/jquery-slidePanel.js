@@ -168,7 +168,7 @@
 
         var hash = 0,
             i, chr, len;
-        if (object.length == 0) return hash;
+        if (object.length === 0) return hash;
         for (i = 0, len = object.length; i < len; i++) {
             chr = object.charCodeAt(i);
             hash = ((hash << 5) - hash) + chr;
@@ -228,7 +228,7 @@
                 }
             }
         }
-    };
+    }
 
     var Easings = {
         'ease': easingBezier(0.25, 0.1, 0.25, 1.0),
@@ -247,7 +247,7 @@
             loading: 'slidePanel-loading',
             content: 'slidePanel-content',
             dragging: 'slidePanel-dragging',
-            willClose: 'slidePanel-will-close',
+            willClose: 'slidePanel-will-close'
         },
 
         closeSelector: null,
@@ -306,7 +306,7 @@
     // View
     function View() {
         return this.initialize.apply(this, Array.prototype.slice.call(arguments));
-    };
+    }
 
     $.extend(View.prototype, {
         initialize: function(options) {
@@ -1048,9 +1048,8 @@
             var view = this.getView(object.options);
             var self = this;
             var callback = function() {
-                view.show(function() {
-                    this.load(object);
-                });
+                view.show();
+                view.load(object);
                 self._current = view;
             }
             if (null !== this._current) {
