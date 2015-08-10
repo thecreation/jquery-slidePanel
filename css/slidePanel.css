@@ -1,90 +1,65 @@
-.slidePanel
-{
-    position: fixed;
-
-    visibility: hidden;
-
-    max-width: 100%;
-    max-height: 100%;
+.slidePanel {
+  position: fixed;
+  max-width: 100%;
+  max-height: 100%;
+  visibility: hidden;
 }
 .slidePanel-right,
-.slidePanel-left
-{
-    width: 500px;
-    height: 100%;
+.slidePanel-left {
+  width: 500px;
 }
-@media (max-width: 768px)
-{
-    .slidePanel-right,
-    .slidePanel-left
-    {
-        width: 100%;
-    }
+@media (max-width: 768px) {
+  .slidePanel-right,
+  .slidePanel-left {
+    width: 100%;
+  }
 }
 .slidePanel-top,
-.slidePanel-bottom
-{
-    width: 100%;
-    height: 400px;
+.slidePanel-bottom {
+  width: 100%;
+  height: 400px;
 }
-@media (max-width: 768px)
-{
-    .slidePanel-top,
-    .slidePanel-bottom
-    {
-        height: 100%;
-    }
-}
-.slidePanel-left
-{
+@media (max-width: 768px) {
+  .slidePanel-top,
+  .slidePanel-bottom {
     top: 0;
-    left: 0;
-}
-.slidePanel-right
-{
-    top: 0;
-    right: 0;
-}
-.slidePanel-top
-{
-    top: 0;
-    left: 0;
-}
-.slidePanel-bottom
-{
     bottom: 0;
-    left: 0;
+    height: auto;
+  }
 }
-.slidePanel-html
-{
-    overflow: hidden;
-
-    height: 100%;
+.slidePanel-left {
+  top: 0;
+  bottom: 0;
+  left: 0;
 }
-.slidePanel-html body
-{
-    height: 100%;
+.slidePanel-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
 }
-.slidePanel-show
-{
-    visibility: visible;
+.slidePanel-top {
+  top: 0;
+  left: 0;
 }
-.slidePanel-loading
-{
-    visibility: hidden;
+.slidePanel-bottom {
+  bottom: 0;
+  left: 0;
 }
-.slidePanel-loading-show
-{
-    visibility: visible;
+.slidePanel-show {
+  visibility: visible;
 }
-.slidePanel-loading .spinner
-{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-
-    -webkit-transform: translate(-50%, -50%);
-        -ms-transform: translate(-50%, -50%);
-         -o-transform: translate(-50%, -50%);
-            transform: translate(-50%, -50%);
+.slidePanel-loading {
+  visibility: hidden;
+}
+.slidePanel-loading-show {
+  visibility: visible;
+}
+.slidePanel-loading .spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translate(-50%, -50%);
+      -ms-transform: translate(-50%, -50%);
+       -o-transform: translate(-50%, -50%);
+          transform: translate(-50%, -50%);
 }
