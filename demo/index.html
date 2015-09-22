@@ -12,7 +12,7 @@
 
         <link rel="stylesheet" href="css/normalize.css">
         <link rel="stylesheet" href="css/main.css">
-        <link rel="stylesheet" href="css/spinner.css">      
+        <link rel="stylesheet" href="css/spinner.css">
         <link rel="stylesheet" href="../css/slidePanel.css">
 
         <script src="../libs/jquery/jquery.js"></script>
@@ -142,6 +142,13 @@
             <button class="example-callbacks">Callbacks</button>
         </div>
     </section>
+
+    <section>
+        <h2>Passing data to view</h2>
+        <div class="example">
+            <button class="example-data" data-hello="world">Data</button>
+        </div>
+    </section>
 </div>
 
 <script>
@@ -254,7 +261,7 @@ $(document).ready(function(){
     });
 
     $('.example-instance').slidePanel();
-    
+
     $('.example-instance-hide').on('click', function(){
         $('.example-instance').slidePanel('hide');
     });
@@ -294,6 +301,17 @@ $(document).ready(function(){
             afterDrag: function(){
                 console.info('afterDrag');
             }
+        });
+    });
+
+    $('.example-data').on('click', function(e){
+        $.slidePanel.show({
+            target: e.target
+        }, {
+            contentFilter: function(data, object) {
+                var $target = $(object.target);
+                return '<h3>hello ' + $target.data('hello') + '</h3>';
+            },
         });
     });
 });

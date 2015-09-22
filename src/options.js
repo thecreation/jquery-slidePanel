@@ -31,7 +31,7 @@ SlidePanel.options = {
         }
     },
 
-    contentFilter: function(content) {
+    contentFilter: function(content, object) {
         return content;
     },
 

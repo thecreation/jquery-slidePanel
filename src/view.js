@@ -96,7 +96,7 @@ $.extend(View.prototype, {
         this.empty();
 
         function setContent(content) {
-            content = options.contentFilter.call(this, content);
+            content = options.contentFilter.call(this, content, object);
             self.$content.html(content);
             self.hideLoading();
 
