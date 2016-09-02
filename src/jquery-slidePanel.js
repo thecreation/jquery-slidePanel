@@ -8,7 +8,7 @@ import _SlidePanel from './_SlidePanel';
 
 const SlidePanel = $.slidePanel = function(...args) {
   'use strict';
-  SlidePanel.show.apply(this, args);
+  SlidePanel.show(...args);
 };
 if (!Date.now) {
   Date.now = () => {

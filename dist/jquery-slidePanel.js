@@ -1,7 +1,7 @@
 /**
 * jQuery slidePanel
 * a jquery slidePanel plugin
-* Compiled: Wed Aug 31 2016 16:52:46 GMT+0800 (CST)
+* Compiled: Fri Sep 02 2016 15:33:28 GMT+0800 (CST)
 * @version v0.2.2
 * @link https://github.com/amazingSurge/jquery-slidePanel
 * @copyright LGPL-3.0
@@ -1331,14 +1331,13 @@
       return Instance;
     }();
 
+    /*! jQuery slidePanel - v0.2.2 - 2015-10-14
+     * https://github.com/amazingSurge/jquery-slidePanel
+     * Copyright (c) 2015 amazingSurge; Licensed GPL */
     var SlidePanel = _jQuery2.default.slidePanel = function() {
       'use strict';
 
-      for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-        args[_key4] = arguments[_key4];
-      }
-
-      SlidePanel.show.apply(this, args);
+      SlidePanel.show.apply(SlidePanel, arguments);
     };
 
     if (!Date.now) {
@@ -1470,8 +1469,8 @@
       hide: function hide() {
         'use strict';
 
-        for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
-          args[_key5] = arguments[_key5];
+        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+          args[_key4] = arguments[_key4];
         }
 
         _SlidePanel.hide(args);
@@ -1483,8 +1482,8 @@
     _jQuery2.default.fn.slidePanel = function(options) {
       'use strict';
 
-      for (var _len6 = arguments.length, args = Array(_len6 > 1 ? _len6 - 1 : 0), _key6 = 1; _key6 < _len6; _key6++) {
-        args[_key6 - 1] = arguments[_key6];
+      for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
+        args[_key5 - 1] = arguments[_key5];
       }
 
       var method = options;

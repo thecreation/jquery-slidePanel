@@ -1,5 +1,5 @@
 import $ from 'jQuery';
-import SlidePanel from './SlidePanel';
+import SlidePanel from './slidePanel';
 
 class Instance {
   constructor(object,...args){
