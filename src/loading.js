@@ -1,4 +1,4 @@
-import $ from 'jQuery';
+import $ from 'jquery';
 
 class Loading {
   constructor(view) {
@@ -6,13 +6,11 @@ class Loading {
   }
 
   initialize(view) {
-    'use strict';
     this._view = view;
     this.build();
   }
 
   build() {
-    'use strict';
     if (this._builded) {
       return;
     }
@@ -36,7 +34,6 @@ class Loading {
   }
 
   show(callback) {
-    'use strict';
     this.build();
     const options = this._view.options;
     options.loading.showCallback.call(this, options);
@@ -47,7 +44,6 @@ class Loading {
   }
 
   hide(callback) {
-    'use strict';
     const options = this._view.options;
     options.loading.hideCallback.call(this, options);
 

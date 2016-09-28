@@ -1,36 +1,15 @@
-import $ from 'jQuery';
+/**
+ * Css features detect
+ **/
+import $ from "jquery";
 
-const Support = ((() => {
-  'use strict';
-  const prefixes = ['webkit', 'Moz', 'O', 'ms'],
-    style = $('<support>').get(0).style;
+let Support = {};
 
-  function test(property, prefixed) {
-    let result = false;
-    const upper = property.charAt(0).toUpperCase() + property.slice(1);
-
-    if (style[property] !== undefined) {
-      result = property;
-    }
-
-    if (!result) {
-      $.each(prefixes, (i, prefix) => {
-        if (style[prefix + upper] !== undefined) {
-          result = `-${prefix.toLowerCase()}-${upper}`;
-          return false;
-        }
-      });
-    }
-
-    if (prefixed) {
-      return result;
-    }
-    if (result) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+((support) => {
+  /**
+   * Borrowed from Owl carousel
+   **/
+   'use strict';
 
   const events = {
       transition: {
@@ -50,6 +29,8 @@ const Support = ((() => {
         }
       }
     },
+    prefixes = ['webkit', 'Moz', 'O', 'ms'],
+    style = $('<support>').get(0).style,
     tests = {
       csstransforms() {
         return Boolean(test('transform'));
@@ -65,26 +46,50 @@ const Support = ((() => {
       }
     };
 
+  const test = (property, prefixed) => {
+    let result = false,
+      upper = property.charAt(0).toUpperCase() + property.slice(1);
 
+    if (style[property] !== undefined) {
+      result = property;
+    }
+    if (!result) {
+      $.each(prefixes, (i, prefix) => {
+        if (style[prefix + upper] !== undefined) {
+          result = `-${prefix.toLowerCase()}-${upper}`;
+          return false;
+        }
+        return true;
+      });
+    }
 
-  function prefixed(property) {
+    if (prefixed) {
+      return result;
+    }
+    if (result) {
+      return true;
+    }
+    return false;
+  };
+
+  const prefixed = (property) => {
     return test(property, true);
-  }
-  const support = {};
+  };
+
   if (tests.csstransitions()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.transition = new String(prefixed('transition'));
     support.transition.end = events.transition.end[support.transition];
   }
 
   if (tests.cssanimations()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.animation = new String(prefixed('animation'));
     support.animation.end = events.animation.end[support.animation];
   }
 
   if (tests.csstransforms()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.transform = new String(prefixed('transform'));
     support.transform3d = tests.csstransforms3d();
   }
@@ -101,11 +106,11 @@ const Support = ((() => {
     support.pointer = false;
   }
 
-  support.prefixPointerEvent = pointerEvent => window.MSPointerEvent ?
-    `MSPointer${pointerEvent.charAt(9).toUpperCase()}${pointerEvent.substr(10)}` :
-    pointerEvent;
-
-  return support;
-}))();
+  support.prefixPointerEvent = (pointerEvent) => {
+    return window.MSPointerEvent ?
+      `MSPointer${pointerEvent.charAt(9).toUpperCase()}${pointerEvent.substr(10)}` :
+      pointerEvent;
+  };
+})(Support);
 
 export default Support;

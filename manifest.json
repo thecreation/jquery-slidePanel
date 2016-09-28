@@ -1,0 +1,7 @@
+{
+  "dest": "examples",
+  "packages": {
+    "npm:jquery": true,
+    "npm:normalize.css": true
+  }
+}

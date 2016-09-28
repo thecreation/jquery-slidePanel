@@ -1,29 +1,28 @@
 /**
-* jQuery slidePanel
-* a jquery slidePanel plugin
-* Compiled: Fri Sep 02 2016 15:33:28 GMT+0800 (CST)
-* @version v0.2.2
-* @link https://github.com/amazingSurge/jquery-slidePanel
-* @copyright LGPL-3.0
+* jQuery slidePanel v0.3.0
+* https://github.com/amazingSurge/jquery-slidePanel
+*
+* Copyright (c) amazingSurge
+* Released under the LGPL-3.0 license
 */
 (function(global, factory) {
   if (typeof define === "function" && define.amd) {
-    define(['jQuery'], factory);
+    define(['jquery'], factory);
   } else if (typeof exports !== "undefined") {
-    factory(require('jQuery'));
+    factory(require('jquery'));
   } else {
     var mod = {
       exports: {}
     };
     factory(global.jQuery);
-    global.jquerySlidePanel = mod.exports;
+    global.jquerySlidePanelEs = mod.exports;
   }
 })(this,
 
-  function(_jQuery) {
+  function(_jquery) {
     'use strict';
 
-    var _jQuery2 = _interopRequireDefault(_jQuery);
+    var _jquery2 = _interopRequireDefault(_jquery);
 
     function _interopRequireDefault(obj) {
       return obj && obj.__esModule ? obj : {
@@ -61,57 +60,184 @@
       };
     }();
 
-    var getTime = function getTime() {
-      'use strict';
+    var info = {
+      version: '0.3.0'
+    };
 
+    function convertMatrixToArray(value) {
+      if (value && value.substr(0, 6) === 'matrix') {
+
+        return value.replace(/^.*\((.*)\)$/g, '$1').replace(/px/g, '').split(/, +/);
+      }
+
+      return false;
+    }
+
+    function getHashCode(object) {
+      /* eslint no-bitwise: "off" */
+
+      if (typeof object !== 'string') {
+        object = JSON.stringify(object);
+      }
+
+      var chr = void 0,
+        hash = 0,
+        i = void 0,
+        len = void 0;
+
+      if (object.length === 0) {
+
+        return hash;
+      }
+
+      for (i = 0, len = object.length; i < len; i++) {
+        chr = object.charCodeAt(i);
+        hash = (hash << 5) - hash + chr;
+        hash |= 0; // Convert to 32bit integer
+      }
+
+      return hash;
+    }
+
+    function getTime() {
       if (typeof window.performance !== 'undefined' && window.performance.now) {
 
         return window.performance.now();
       }
 
       return Date.now();
+    }
+
+    function isPercentage(n) {
+      return typeof n === 'string' && n.indexOf('%') !== -1;
+    }
+
+    function isPx(n) {
+      return typeof n === 'string' && n.indexOf('px') !== -1;
+    }
+
+    /* eslint no-unused-vars: "off" */
+    var DEFAULTS = {
+      skin: null,
+
+      classes: {
+        base: 'slidePanel',
+        show: 'slidePanel-show',
+        loading: 'slidePanel-loading',
+        content: 'slidePanel-content',
+        dragging: 'slidePanel-dragging',
+        willClose: 'slidePanel-will-close'
+      },
+
+      closeSelector: null,
+
+      template: function template(options) {
+        return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '"><div class="' + options.classes.content + '"></div></div>';
+      },
+
+
+      loading: {
+        appendTo: 'panel',
+        template: function template(options) {
+          return '<div class="' + options.classes.loading + '"></div>';
+        },
+        showCallback: function showCallback(options) {
+          this.$el.addClass(options.classes.loading + '-show');
+        },
+        hideCallback: function hideCallback(options) {
+          this.$el.removeClass(options.classes.loading + '-show');
+        }
+      },
+
+      contentFilter: function contentFilter(content, object) {
+        return content;
+      },
+
+
+      useCssTransforms3d: true,
+      useCssTransforms: true,
+      useCssTransitions: true,
+
+      dragTolerance: 150,
+
+      mouseDragHandler: null,
+      mouseDrag: true,
+      touchDrag: true,
+      pointerDrag: true,
+
+      direction: 'right', // top, bottom, left, right
+      duration: '500',
+      easing: 'ease', // linear, ease-in, ease-out, ease-in-out
+
+      // callbacks
+      beforeLoad: $.noop, // Before loading
+      afterLoad: $.noop, // After loading
+      beforeShow: $.noop, // Before opening
+      afterShow: $.noop, // After opening
+      onChange: $.noop, // On changing
+      beforeHide: $.noop, // Before closing
+      afterHide: $.noop, // After closing
+      beforeDrag: $.noop, // Before drag
+      afterDrag: $.noop // After drag
     };
 
-    var Support = function() {
-      'use strict';
+    var Instance = function() {
+      function Instance(object) {
+        _classCallCheck(this, Instance);
 
-      var prefixes = ['webkit', 'Moz', 'O', 'ms'],
-        style = (0, _jQuery2.default)('<support>').get(0).style;
-
-      function test(property, prefixed) {
-        var result = false;
-        var upper = property.charAt(0).toUpperCase() + property.slice(1);
-
-        if (style[property] !== undefined) {
-          result = property;
+        for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          args[_key - 1] = arguments[_key];
         }
 
-        if (!result) {
-          _jQuery2.default.each(prefixes,
-
-            function(i, prefix) {
-              if (style[prefix + upper] !== undefined) {
-                result = '-' + prefix.toLowerCase() + '-' + upper;
-
-                return false;
-              }
-            }
-          );
-        }
-
-        if (prefixed) {
-
-          return result;
-        }
-
-        if (result) {
-
-          return true;
-        } else {
-
-          return false;
-        }
+        this.initialize.apply(this, [object].concat(args));
       }
+
+      _createClass(Instance, [{
+        key: 'initialize',
+        value: function initialize(object) {
+          var options = (arguments.length <= 1 ? undefined : arguments[1]) || {};
+
+          if (typeof object === 'string') {
+            object = {
+              url: object
+            };
+          } else if (object && object.nodeType === 1) {
+            var $element = (0, _jquery2.default)(object);
+
+            object = {
+              url: $element.attr('href'),
+              settings: $element.data('settings') || {},
+              options: $element.data() || {}
+            };
+          }
+
+          if (object && object.options) {
+            object.options = _jquery2.default.extend(true, options, object.options);
+          } else {
+            object.options = options;
+          }
+
+          object.options = _jquery2.default.extend(true, {}, DEFAULTS, object.options);
+
+          _jquery2.default.extend(this, object);
+
+          return this;
+        }
+      }]);
+
+      return Instance;
+    }();
+
+    /**
+     * Css features detect
+     **/
+    var Support = {};
+
+    (function(support) {
+      /**
+       * Borrowed from Owl carousel
+       **/
+      'use strict';
 
       var events = {
           transition: {
@@ -131,6 +257,8 @@
             }
           }
         },
+        prefixes = ['webkit', 'Moz', 'O', 'ms'],
+        style = (0, _jquery2.default)('<support>').get(0).style,
         tests = {
           csstransforms: function csstransforms() {
             return Boolean(test('transform'));
@@ -146,26 +274,60 @@
           }
         };
 
-      function prefixed(property) {
-        return test(property, true);
-      }
+      var test = function test(property, prefixed) {
+        var result = false,
+          upper = property.charAt(0).toUpperCase() + property.slice(1);
 
-      var support = {};
+        if (style[property] !== undefined) {
+          result = property;
+        }
+
+        if (!result) {
+          _jquery2.default.each(prefixes,
+
+            function(i, prefix) {
+              if (style[prefix + upper] !== undefined) {
+                result = '-' + prefix.toLowerCase() + '-' + upper;
+
+                return false;
+              }
+
+              return true;
+            }
+          );
+        }
+
+        if (prefixed) {
+
+          return result;
+        }
+
+        if (result) {
+
+          return true;
+        }
+
+        return false;
+      };
+
+      var prefixed = function prefixed(property) {
+        return test(property, true);
+      };
 
       if (tests.csstransitions()) {
-        /* jshint -W053 */
+        /*eslint no-new-wrappers: "off"*/
         support.transition = new String(prefixed('transition'));
         support.transition.end = events.transition.end[support.transition];
       }
 
       if (tests.cssanimations()) {
-        /* jshint -W053 */
+        /*eslint no-new-wrappers: "off"*/
         support.animation = new String(prefixed('animation'));
         support.animation.end = events.animation.end[support.animation];
       }
 
       if (tests.csstransforms()) {
-        /* jshint -W053 */
+        /*eslint no-new-wrappers: "off"*/
         support.transform = new String(prefixed('transform'));
         support.transform3d = tests.csstransforms3d();
       }
@@ -186,9 +348,7 @@
         return window.MSPointerEvent ? 'MSPointer' + pointerEvent.charAt(9).toUpperCase() + pointerEvent.substr(10) : pointerEvent;
       }
       ;
-
-      return support;
-    }();
+    })(Support);
 
     function easingBezier(mX1, mY1, mX2, mY2) {
       'use strict';
@@ -263,8 +423,6 @@
 
     var Animate = {
       prepareTransition: function prepareTransition($el, property, duration, easing, delay) {
-        'use strict';
-
         var temp = [];
 
         if (property) {
@@ -273,7 +431,7 @@
 
         if (duration) {
 
-          if (_jQuery2.default.isNumeric(duration)) {
+          if (_jquery2.default.isNumeric(duration)) {
             duration = duration + 'ms';
           }
           temp.push(duration);
@@ -291,15 +449,13 @@
         $el.css(Support.transition, temp.join(' '));
       },
       do: function _do(view, value, callback) {
-        'use strict';
-
-        _SlidePanel.enter('animating');
+        SlidePanel.enter('animating');
 
         var duration = view.options.duration,
           easing = view.options.easing || 'ease';
 
-        var self = this,
-          style = view.makePositionStyle(value);
+        var that = this;
+        var style = view.makePositionStyle(value);
         var property = null;
 
         for (property in style) {
@@ -313,20 +469,20 @@
           setTimeout(
 
             function() {
-              self.prepareTransition(view.$panel, property, duration, easing);
+              that.prepareTransition(view.$panel, property, duration, easing);
             }
             , 20);
 
           view.$panel.one(Support.transition.end,
 
             function() {
-              if (_jQuery2.default.isFunction(callback)) {
+              if (_jquery2.default.isFunction(callback)) {
                 callback();
               }
 
               view.$panel.css(Support.transition, '');
 
-              _SlidePanel.leave('animating');
+              SlidePanel.leave('animating');
             }
           );
           setTimeout(
@@ -355,20 +511,20 @@
               view.setPosition(current);
 
               if (percent === 1) {
-                window.cancelAnimationFrame(self._frameId);
-                self._frameId = null;
+                window.cancelAnimationFrame(that._frameId);
+                that._frameId = null;
 
-                if (_jQuery2.default.isFunction(callback)) {
+                if (_jquery2.default.isFunction(callback)) {
                   callback();
                 }
 
-                _SlidePanel.leave('animating');
+                SlidePanel.leave('animating');
               } else {
-                self._frameId = window.requestAnimationFrame(run);
+                that._frameId = window.requestAnimationFrame(run);
               }
             };
 
-            self._frameId = window.requestAnimationFrame(run);
+            that._frameId = window.requestAnimationFrame(run);
           })();
         }
       }
@@ -384,16 +540,12 @@
       _createClass(Loading, [{
         key: 'initialize',
         value: function initialize(view) {
-          'use strict';
-
           this._view = view;
           this.build();
         }
       }, {
         key: 'build',
         value: function build() {
-          'use strict';
-
           if (this._builded) {
 
             return;
@@ -401,7 +553,7 @@
 
           var options = this._view.options;
           var html = options.loading.template.call(this, options);
-          this.$el = (0, _jQuery2.default)(html);
+          this.$el = (0, _jquery2.default)(html);
 
           switch (options.loading.appendTo) {
             case 'panel':
@@ -419,25 +571,21 @@
       }, {
         key: 'show',
         value: function show(callback) {
-          'use strict';
-
           this.build();
           var options = this._view.options;
           options.loading.showCallback.call(this, options);
 
-          if (_jQuery2.default.isFunction(callback)) {
+          if (_jquery2.default.isFunction(callback)) {
             callback.call(this);
           }
         }
       }, {
         key: 'hide',
         value: function hide(callback) {
-          'use strict';
-
           var options = this._view.options;
           options.loading.hideCallback.call(this, options);
 
-          if (_jQuery2.default.isFunction(callback)) {
+          if (_jquery2.default.isFunction(callback)) {
             callback.call(this);
           }
         }
@@ -449,6 +597,8 @@
     var Drag = function() {
       function Drag() {
         _classCallCheck(this, Drag);
+
+        this.initialize.apply(this, arguments);
       }
 
       _createClass(Drag, [{
@@ -470,13 +620,15 @@
             options = this.options;
 
           if (options.mouseDrag) {
-            $panel.on(_SlidePanel.eventName('mousedown'), _jQuery2.default.proxy(this.onDragStart, this));
-            $panel.on(_SlidePanel.eventName('dragstart selectstart'),
+            $panel.on(SlidePanel.eventName('mousedown'), _jquery2.default.proxy(this.onDragStart, this));
+            $panel.on(SlidePanel.eventName('dragstart selectstart'),
 
-              function() {
+              function(event) {
+                /* eslint consistent-return: "off" */
+
                 if (options.mouseDragHandler) {
 
-                  if (!(0, _jQuery2.default)(event.target).is(options.mouseDragHandler) && !((0, _jQuery2.default)(event.target).parents(options.mouseDragHandler).length > 0)) {
+                  if (!(0, _jquery2.default)(event.target).is(options.mouseDragHandler) && !((0, _jquery2.default)(event.target).parents(options.mouseDragHandler).length > 0)) {
 
                     return;
                   }
@@ -488,19 +640,19 @@
           }
 
           if (options.touchDrag && Support.touch) {
-            $panel.on(_SlidePanel.eventName('touchstart'), _jQuery2.default.proxy(this.onDragStart, this));
-            $panel.on(_SlidePanel.eventName('touchcancel'), _jQuery2.default.proxy(this.onDragEnd, this));
+            $panel.on(SlidePanel.eventName('touchstart'), _jquery2.default.proxy(this.onDragStart, this));
+            $panel.on(SlidePanel.eventName('touchcancel'), _jquery2.default.proxy(this.onDragEnd, this));
           }
 
           if (options.pointerDrag && Support.pointer) {
-            $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), _jQuery2.default.proxy(this.onDragStart, this));
-            $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), _jQuery2.default.proxy(this.onDragEnd, this));
+            $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), _jquery2.default.proxy(this.onDragStart, this));
+            $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), _jquery2.default.proxy(this.onDragEnd, this));
           }
         }
       }, {
         key: 'onDragStart',
         value: function onDragStart(event) {
-          var self = this;
+          var that = this;
 
           if (event.which === 3) {
 
@@ -517,26 +669,26 @@
           this._drag.pointer = this.pointer(event);
 
           var callback = function callback() {
-            _SlidePanel.enter('dragging');
-            _SlidePanel.trigger(self._view, 'beforeDrag');
+            SlidePanel.enter('dragging');
+            SlidePanel.trigger(that._view, 'beforeDrag');
           };
 
           if (options.mouseDrag) {
 
             if (options.mouseDragHandler) {
 
-              if (!(0, _jQuery2.default)(event.target).is(options.mouseDragHandler) & !((0, _jQuery2.default)(event.target).parents(options.mouseDragHandler).length > 0)) {
+              if (!(0, _jquery2.default)(event.target).is(options.mouseDragHandler) && !((0, _jquery2.default)(event.target).parents(options.mouseDragHandler).length > 0)) {
 
                 return;
               }
             }
 
-            (0, _jQuery2.default)(document).on(_SlidePanel.eventName('mouseup'), _jQuery2.default.proxy(this.onDragEnd, this));
+            (0, _jquery2.default)(document).on(SlidePanel.eventName('mouseup'), _jquery2.default.proxy(this.onDragEnd, this));
 
-            (0, _jQuery2.default)(document).one(_SlidePanel.eventName('mousemove'), _jQuery2.default.proxy(
+            (0, _jquery2.default)(document).one(SlidePanel.eventName('mousemove'), _jquery2.default.proxy(
 
               function() {
-                (0, _jQuery2.default)(document).on(_SlidePanel.eventName('mousemove'), _jQuery2.default.proxy(this.onDragMove, this));
+                (0, _jquery2.default)(document).on(SlidePanel.eventName('mousemove'), _jquery2.default.proxy(this.onDragMove, this));
 
                 callback();
               }
@@ -544,12 +696,12 @@
           }
 
           if (options.touchDrag && Support.touch) {
-            (0, _jQuery2.default)(document).on(_SlidePanel.eventName('touchend'), _jQuery2.default.proxy(this.onDragEnd, this));
+            (0, _jquery2.default)(document).on(SlidePanel.eventName('touchend'), _jquery2.default.proxy(this.onDragEnd, this));
 
-            (0, _jQuery2.default)(document).one(_SlidePanel.eventName('touchmove'), _jQuery2.default.proxy(
+            (0, _jquery2.default)(document).one(SlidePanel.eventName('touchmove'), _jquery2.default.proxy(
 
               function() {
-                (0, _jQuery2.default)(document).on(_SlidePanel.eventName('touchmove'), _jQuery2.default.proxy(this.onDragMove, this));
+                (0, _jquery2.default)(document).on(SlidePanel.eventName('touchmove'), _jquery2.default.proxy(this.onDragMove, this));
 
                 callback();
               }
@@ -557,19 +709,19 @@
           }
 
           if (options.pointerDrag && Support.pointer) {
-            (0, _jQuery2.default)(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), _jQuery2.default.proxy(this.onDragEnd, this));
+            (0, _jquery2.default)(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), _jquery2.default.proxy(this.onDragEnd, this));
 
-            (0, _jQuery2.default)(document).one(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), _jQuery2.default.proxy(
+            (0, _jquery2.default)(document).one(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), _jquery2.default.proxy(
 
               function() {
-                (0, _jQuery2.default)(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), _jQuery2.default.proxy(this.onDragMove, this));
+                (0, _jquery2.default)(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), _jquery2.default.proxy(this.onDragMove, this));
 
                 callback();
               }
               , this));
           }
 
-          (0, _jQuery2.default)(document).on(_SlidePanel.eventName('blur'), _jQuery2.default.proxy(this.onDragEnd, this));
+          (0, _jquery2.default)(document).on(SlidePanel.eventName('blur'), _jquery2.default.proxy(this.onDragEnd, this));
 
           event.preventDefault();
         }
@@ -578,7 +730,7 @@
         value: function onDragMove(event) {
           var distance = this.distance(this._drag.pointer, this.pointer(event));
 
-          if (!_SlidePanel.is('dragging')) {
+          if (!SlidePanel.is('dragging')) {
 
             return;
           }
@@ -594,7 +746,7 @@
             this._view.$panel.removeClass(this.options.classes.willClose);
           }
 
-          if (!_SlidePanel.is('dragging')) {
+          if (!SlidePanel.is('dragging')) {
 
             return;
           }
@@ -607,7 +759,7 @@
         value: function onDragEnd(event) {
           var distance = this.distance(this._drag.pointer, this.pointer(event));
 
-          (0, _jQuery2.default)(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
+          (0, _jquery2.default)(document).off(SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
           this._view.$panel.removeClass(this.options.classes.dragging);
 
@@ -616,19 +768,19 @@
             this._view.$panel.removeClass(this.options.classes.willClose);
           }
 
-          if (!_SlidePanel.is('dragging')) {
+          if (!SlidePanel.is('dragging')) {
 
             return;
           }
 
-          _SlidePanel.leave('dragging');
+          SlidePanel.leave('dragging');
 
-          _SlidePanel.trigger(this._view, 'afterDrag');
+          SlidePanel.trigger(this._view, 'afterDrag');
 
           if (Math.abs(distance) < this.options.dragTolerance) {
             this._view.revert();
           } else {
-            _SlidePanel.hide();
+            SlidePanel.hide();
           }
         }
       }, {
@@ -695,29 +847,6 @@
       return Drag;
     }();
 
-    var isPercentage = function isPercentage(n) {
-      'use strict';
-
-      return typeof n === 'string' && n.indexOf('%') !== -1;
-    };
-
-    var isPx = function isPx(n) {
-      'use strict';
-
-      return typeof n === 'string' && n.indexOf('px') !== -1;
-    };
-
-    var convertMatrixToArray = function convertMatrixToArray(value) {
-      'use strict';
-
-      if (value && value.substr(0, 6) === 'matrix') {
-
-        return value.replace(/^.*\((.*)\)$/g, '$1').replace(/px/g, '').split(/, +/);
-      }
-
-      return false;
-    };
-
     var View = function() {
       function View(options) {
         _classCallCheck(this, View);
@@ -761,9 +890,9 @@
           var options = this.options;
 
           var html = options.template.call(this, options);
-          var self = this;
+          var that = this;
 
-          this.$panel = (0, _jQuery2.default)(html).appendTo('body');
+          this.$panel = (0, _jquery2.default)(html).appendTo('body');
 
           if (options.skin) {
             this.$panel.addClass(options.skin);
@@ -774,7 +903,7 @@
             this.$panel.on('click', options.closeSelector,
 
               function() {
-                self.hide();
+                that.hide();
 
                 return false;
               }
@@ -794,6 +923,7 @@
       }, {
         key: 'getHidePosition',
         value: function getHidePosition() {
+          /* eslint consistent-return: "off" */
           var options = this.options;
 
           if (options.useCssTransforms || options.useCssTransforms3d) {
@@ -813,11 +943,11 @@
             case 'top':
             case 'bottom':
 
-              return parseFloat(-(this._length / (0, _jQuery2.default)(window).height()) * 100, 10);
+              return parseFloat(-(this._length / (0, _jquery2.default)(window).height()) * 100, 10);
             case 'left':
             case 'right':
 
-              return parseFloat(-(this._length / (0, _jQuery2.default)(window).width()) * 100, 10);
+              return parseFloat(-(this._length / (0, _jquery2.default)(window).width()) * 100, 10);
           // no default
           }
         }
@@ -830,20 +960,20 @@
       }, {
         key: 'load',
         value: function load(object) {
-          var self = this;
+          var that = this;
           var options = object.options;
 
-          _SlidePanel.trigger(this, 'beforeLoad', object);
+          SlidePanel.trigger(this, 'beforeLoad', object);
           this.empty();
 
           function setContent(content) {
             content = options.contentFilter.call(this, content, object);
-            self.$content.html(content);
-            self.hideLoading();
+            that.$content.html(content);
+            that.hideLoading();
 
-            self._instance = object;
+            that._instance = object;
 
-            _SlidePanel.trigger(self, 'afterLoad', object);
+            SlidePanel.trigger(that, 'afterLoad', object);
           }
 
           if (object.content) {
@@ -851,7 +981,7 @@
           } else if (object.url) {
             this.showLoading();
 
-            _jQuery2.default.ajax(object.url, object.settings || {}).done(
+            _jquery2.default.ajax(object.url, object.settings || {}).done(
 
               function(data) {
                 setContent(data);
@@ -864,22 +994,22 @@
       }, {
         key: 'showLoading',
         value: function showLoading() {
-          var self = this;
+          var that = this;
           this.loading.show(
 
             function() {
-              self._isLoading = true;
+              that._isLoading = true;
             }
           );
         }
       }, {
         key: 'hideLoading',
         value: function hideLoading() {
-          var self = this;
+          var that = this;
           this.loading.hide(
 
             function() {
-              self._isLoading = false;
+              that._isLoading = false;
             }
           );
         }
@@ -888,21 +1018,21 @@
         value: function show(callback) {
           this.build();
 
-          _SlidePanel.enter('show');
-          _SlidePanel.trigger(this, 'beforeShow');
+          SlidePanel.enter('show');
+          SlidePanel.trigger(this, 'beforeShow');
 
-          (0, _jQuery2.default)('html').addClass(this.options.classes.base + '-html');
+          (0, _jquery2.default)('html').addClass(this.options.classes.base + '-html');
           this.$panel.addClass(this.options.classes.show);
 
-          var self = this;
+          var that = this;
           Animate.do(this, 0,
 
             function() {
-              self._showed = true;
-              _SlidePanel.trigger(self, 'afterShow');
+              that._showed = true;
+              SlidePanel.trigger(that, 'afterShow');
 
-              if (_jQuery2.default.isFunction(callback)) {
-                callback.call(self);
+              if (_jquery2.default.isFunction(callback)) {
+                callback.call(that);
               }
             }
           );
@@ -910,23 +1040,23 @@
       }, {
         key: 'change',
         value: function change(object) {
-          _SlidePanel.trigger(this, 'beforeShow');
+          SlidePanel.trigger(this, 'beforeShow');
 
-          _SlidePanel.trigger(this, 'onChange', object, this._instance);
+          SlidePanel.trigger(this, 'onChange', object, this._instance);
 
           this.load(object);
 
-          _SlidePanel.trigger(this, 'afterShow');
+          SlidePanel.trigger(this, 'afterShow');
         }
       }, {
         key: 'revert',
         value: function revert(callback) {
-          var self = this;
+          var that = this;
           Animate.do(this, 0,
 
             function() {
-              if (_jQuery2.default.isFunction(callback)) {
-                callback.call(self);
+              if (_jquery2.default.isFunction(callback)) {
+                callback.call(that);
               }
             }
           );
@@ -934,31 +1064,31 @@
       }, {
         key: 'hide',
         value: function hide(callback) {
-          _SlidePanel.leave('show');
-          _SlidePanel.trigger(this, 'beforeHide');
+          SlidePanel.leave('show');
+          SlidePanel.trigger(this, 'beforeHide');
 
-          var self = this;
+          var that = this;
 
           Animate.do(this, this.getHidePosition(),
 
             function() {
-              self.$panel.removeClass(self.options.classes.show);
-              self._showed = false;
-              self._instance = null;
+              that.$panel.removeClass(that.options.classes.show);
+              that._showed = false;
+              that._instance = null;
 
-              if (_SlidePanel._current === self) {
-                _SlidePanel._current = null;
+              if (SlidePanel._current === that) {
+                SlidePanel._current = null;
               }
 
-              if (!_SlidePanel.is('show')) {
-                (0, _jQuery2.default)('html').removeClass(self.options.classes.base + '-html');
+              if (!SlidePanel.is('show')) {
+                (0, _jquery2.default)('html').removeClass(that.options.classes.base + '-html');
               }
 
-              if (_jQuery2.default.isFunction(callback)) {
-                callback.call(self);
+              if (_jquery2.default.isFunction(callback)) {
+                callback.call(that);
               }
 
-              _SlidePanel.trigger(self, 'afterHide');
+              SlidePanel.trigger(that, 'afterHide');
             }
           );
         }
@@ -1037,46 +1167,16 @@
       return View;
     }();
 
-    var getHashCode = function getHashCode(object) {
-      'use strict';
-
-      if (typeof object !== 'string') {
-        object = JSON.stringify(object);
-      }
-
-      var chr = void 0,
-        hash = 0,
-        i = void 0,
-        len = void 0;
-
-      if (object.length === 0) {
-
-        return hash;
-      }
-
-      for (i = 0, len = object.length; i < len; i++) {
-        chr = object.charCodeAt(i);
-        hash = (hash << 5) - hash + chr;
-        hash |= 0; // Convert to 32bit integer
-      }
-
-      return hash;
-    };
-
-    var _SlidePanel = {
+    var SlidePanel = {
       // Current state information.
       _states: {},
       _views: {},
       _current: null,
 
       is: function is(state) {
-        'use strict';
-
         return this._states[state] && this._states[state] > 0;
       },
       enter: function enter(state) {
-        'use strict';
-
         if (this._states[state] === undefined) {
           this._states[state] = 0;
         }
@@ -1084,29 +1184,23 @@
         this._states[state]++;
       },
       leave: function leave(state) {
-        'use strict';
-
         this._states[state]--;
       },
       trigger: function trigger(view, event) {
-        'use strict';
-
-        for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-          args[_key - 2] = arguments[_key];
+        for (var _len2 = arguments.length, args = Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
+          args[_key2 - 2] = arguments[_key2];
         }
 
         var data = [view].concat(args);
 
         // event
-        (0, _jQuery2.default)(document).trigger('slidePanel::' + event, data);
+        (0, _jquery2.default)(document).trigger('slidePanel::' + event, data);
 
-        if (_jQuery2.default.isFunction(view.options[event])) {
+        if (_jquery2.default.isFunction(view.options[event])) {
           view.options[event](args);
         }
       },
       eventName: function eventName(events) {
-        'use strict';
-
         if (typeof events !== 'string' || events === '') {
 
           return '.slidepanel';
@@ -1122,7 +1216,7 @@
         return events.join(' ');
       },
       show: function show(object, options) {
-        'use strict';
+        var _this = this;
 
         if (!(object instanceof Instance)) {
           switch (arguments.length) {
@@ -1140,11 +1234,11 @@
         }
 
         var view = this.getView(object.options);
-        var self = this;
+
         var callback = function callback() {
           view.show();
           view.load(object);
-          self._current = view;
+          _this._current = view;
         };
 
         if (this._current !== null) {
@@ -1159,8 +1253,6 @@
         }
       },
       getView: function getView(options) {
-        'use strict';
-
         var code = getHashCode(options);
 
         if (this._views.hasOwnProperty(code)) {
@@ -1171,8 +1263,6 @@
         return this._views[code] = new View(options);
       },
       hide: function hide(object) {
-        'use strict';
-
         if (object.length !== 0) {
           var view = this.getView(object.options);
           view.hide();
@@ -1182,168 +1272,28 @@
       }
     };
 
-    var SlidePanel$1 = {
-      options: {
-        skin: null,
-
-        classes: {
-          base: 'slidePanel',
-          show: 'slidePanel-show',
-          loading: 'slidePanel-loading',
-          content: 'slidePanel-content',
-          dragging: 'slidePanel-dragging',
-          willClose: 'slidePanel-will-close'
-        },
-
-        closeSelector: null,
-
-        template: function template(options) {
-          'use strict';
-
-          return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '"><div class="' + options.classes.content + '"></div></div>';
-        },
-
-
-        loading: {
-          appendTo: 'panel',
-          template: function template(options) {
-            'use strict';
-
-            return '<div class="' + options.classes.loading + '"></div>';
-          },
-          showCallback: function showCallback(options) {
-            'use strict';
-
-            this.$el.addClass(options.classes.loading + '-show');
-          },
-          hideCallback: function hideCallback(options) {
-            'use strict';
-
-            this.$el.removeClass(options.classes.loading + '-show');
-          }
-        },
-
-        contentFilter: function contentFilter(content, object) {
-          'use strict';
-
-          return content;
-        },
-
-
-        useCssTransforms3d: true,
-        useCssTransforms: true,
-        useCssTransitions: true,
-
-        dragTolerance: 150,
-
-        mouseDragHandler: null,
-        mouseDrag: true,
-        touchDrag: true,
-        pointerDrag: true,
-
-        direction: 'right', // top, bottom, left, right
-        duration: '500',
-        easing: 'ease', // linear, ease-in, ease-out, ease-in-out
-
-        // callbacks
-        beforeLoad: _jQuery2.default.noop, // Before loading
-        afterLoad: _jQuery2.default.noop, // After loading
-        beforeShow: _jQuery2.default.noop, // Before opening
-        afterShow: _jQuery2.default.noop, // After opening
-        onChange: _jQuery2.default.noop, // On changing
-        beforeChange: _jQuery2.default.noop, // Before changing
-        beforeHide: _jQuery2.default.noop, // Before closing
-        afterHide: _jQuery2.default.noop, // After closing
-        beforeDrag: _jQuery2.default.noop, // Before drag
-        afterDrag: _jQuery2.default.noop // After drag
-      },
+    var api = {
       is: function is(state) {
-        'use strict';
-
-        return _SlidePanel.is(state);
+        return SlidePanel.is(state);
       },
       show: function show(object, options) {
-        'use strict';
-
-        _SlidePanel.show(object, options);
+        SlidePanel.show(object, options);
 
         return this;
       },
       hide: function hide() {
-        'use strict';
-
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-          args[_key2] = arguments[_key2];
+        for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+          args[_key3] = arguments[_key3];
         }
 
-        _SlidePanel.hide(args);
+        SlidePanel.hide(args);
 
         return this;
       }
     };
 
-    var Instance = function() {
-      function Instance(object) {
-        _classCallCheck(this, Instance);
-
-        for (var _len3 = arguments.length, args = Array(_len3 > 1 ? _len3 - 1 : 0), _key3 = 1; _key3 < _len3; _key3++) {
-          args[_key3 - 1] = arguments[_key3];
-        }
-
-        this.initialize.apply(this, [object].concat(args));
-      }
-
-      _createClass(Instance, [{
-        key: 'initialize',
-        value: function initialize(object) {
-          'use strict';
-
-          var options = (arguments.length <= 1 ? undefined : arguments[1]) || {};
-
-          if (typeof object === 'string') {
-            object = {
-              url: object
-            };
-          } else if (object && object.nodeType === 1) {
-            var $element = (0, _jQuery2.default)(object);
-
-            object = {
-              url: $element.attr('href'),
-              settings: $element.data('settings') || {},
-              options: $element.data() || {}
-            };
-          }
-
-          if (object && object.options) {
-            object.options = _jQuery2.default.extend(true, options, object.options);
-          } else {
-            object.options = options;
-          }
-
-          object.options = _jQuery2.default.extend(true, {}, SlidePanel$1.options, object.options);
-
-          _jQuery2.default.extend(this, object);
-
-          return this;
-        }
-      }]);
-
-      return Instance;
-    }();
-
-    /*! jQuery slidePanel - v0.2.2 - 2015-10-14
-     * https://github.com/amazingSurge/jquery-slidePanel
-     * Copyright (c) 2015 amazingSurge; Licensed GPL */
-    var SlidePanel = _jQuery2.default.slidePanel = function() {
-      'use strict';
-
-      SlidePanel.show.apply(SlidePanel, arguments);
-    };
-
     if (!Date.now) {
       Date.now = function() {
-        'use strict';
-
         return new Date().getTime();
       }
       ;
@@ -1361,8 +1311,6 @@
       (function() {
         var lastTime = 0;
         window.requestAnimationFrame = function(callback) {
-          'use strict';
-
           var now = getTime();
           var nextTime = Math.max(lastTime + 16, now);
 
@@ -1378,112 +1326,11 @@
       })();
     }
 
-    SlidePanel.options = {
-      skin: null,
+    var OtherSlidePanel = _jquery2.default.fn.slidePanel;
 
-      classes: {
-        base: 'slidePanel',
-        show: 'slidePanel-show',
-        loading: 'slidePanel-loading',
-        content: 'slidePanel-content',
-        dragging: 'slidePanel-dragging',
-        willClose: 'slidePanel-will-close'
-      },
-
-      closeSelector: null,
-
-      template: function template(options) {
-        'use strict';
-
-        return '<div class="' + options.classes.base + ' ' + options.classes.base + '-' + options.direction + '"><div class="' + options.classes.content + '"></div></div>';
-      },
-
-
-      loading: {
-        appendTo: 'panel',
-        template: function template(options) {
-          'use strict';
-
-          return '<div class="' + options.classes.loading + '"></div>';
-        },
-        showCallback: function showCallback(options) {
-          'use strict';
-
-          this.$el.addClass(options.classes.loading + '-show');
-        },
-        hideCallback: function hideCallback(options) {
-          'use strict';
-
-          this.$el.removeClass(options.classes.loading + '-show');
-        }
-      },
-
-      contentFilter: function contentFilter(content, object) {
-        'use strict';
-
-        return content;
-      },
-
-
-      useCssTransforms3d: true,
-      useCssTransforms: true,
-      useCssTransitions: true,
-
-      dragTolerance: 150,
-
-      mouseDragHandler: null,
-      mouseDrag: true,
-      touchDrag: true,
-      pointerDrag: true,
-
-      direction: 'right', // top, bottom, left, right
-      duration: '500',
-      easing: 'ease', // linear, ease-in, ease-out, ease-in-out
-
-      // callbacks
-      beforeLoad: _jQuery2.default.noop, // Before loading
-      afterLoad: _jQuery2.default.noop, // After loading
-      beforeShow: _jQuery2.default.noop, // Before opening
-      afterShow: _jQuery2.default.noop, // After opening
-      onChange: _jQuery2.default.noop, // On changing
-      beforeChange: _jQuery2.default.noop, // Before changing
-      beforeHide: _jQuery2.default.noop, // Before closing
-      afterHide: _jQuery2.default.noop, // After closing
-      beforeDrag: _jQuery2.default.noop, // Before drag
-      afterDrag: _jQuery2.default.noop // After drag
-    };
-
-    _jQuery2.default.extend(SlidePanel, {
-      is: function is(state) {
-        'use strict';
-
-        return _SlidePanel.is(state);
-      },
-      show: function show(object, options) {
-        'use strict';
-
-        _SlidePanel.show(object, options);
-
-        return this;
-      },
-      hide: function hide() {
-        'use strict';
-
-        for (var _len4 = arguments.length, args = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
-          args[_key4] = arguments[_key4];
-        }
-
-        _SlidePanel.hide(args);
-
-        return this;
-      }
-    });
-
-    _jQuery2.default.fn.slidePanel = function(options) {
-      'use strict';
-
-      for (var _len5 = arguments.length, args = Array(_len5 > 1 ? _len5 - 1 : 0), _key5 = 1; _key5 < _len5; _key5++) {
-        args[_key5 - 1] = arguments[_key5];
+    var jQuerySlidePanel = function jQuerySlidePanel(options) {
+      for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+        args[_key4 - 1] = arguments[_key4];
       }
 
       var method = options;
@@ -1493,19 +1340,19 @@
         return this.each(
 
           function() {
-            var instance = _jQuery2.default.data(this, 'slidePanel');
+            var instance = _jquery2.default.data(this, 'slidePanel');
 
             if (!(instance instanceof Instance)) {
               instance = new Instance(this, args);
-              _jQuery2.default.data(this, 'slidePanel', instance);
+              _jquery2.default.data(this, 'slidePanel', instance);
             }
 
             switch (method) {
               case 'hide':
-                _SlidePanel.hide(instance);
+                SlidePanel.hide(instance);
                 break;
               case 'show':
-                _SlidePanel.show(instance);
+                SlidePanel.show(instance);
                 break;
             // no default
             }
@@ -1516,14 +1363,14 @@
       return this.each(
 
         function() {
-          if (!_jQuery2.default.data(this, 'slidePanel')) {
-            _jQuery2.default.data(this, 'slidePanel', new Instance(this, options));
+          if (!_jquery2.default.data(this, 'slidePanel')) {
+            _jquery2.default.data(this, 'slidePanel', new Instance(this, options));
 
-            (0, _jQuery2.default)(this).on('click',
+            (0, _jquery2.default)(this).on('click',
 
               function(e) {
-                var instance = _jQuery2.default.data(this, 'slidePanel');
-                _SlidePanel.show(instance);
+                var instance = _jquery2.default.data(this, 'slidePanel');
+                SlidePanel.show(instance);
 
                 e.preventDefault();
                 e.stopPropagation();
@@ -1532,7 +1379,24 @@
           }
         }
       );
+    };
+
+    _jquery2.default.fn.slidePanel = jQuerySlidePanel;
+
+    _jquery2.default.slidePanel = function() {
+      SlidePanel.show.apply(SlidePanel, arguments);
     }
     ;
+
+    _jquery2.default.extend(_jquery2.default.slidePanel, {
+      setDefaults: function setDefaults(options) {
+        _jquery2.default.extend(DEFAULTS, _jquery2.default.isPlainObject(options) && options);
+      },
+      noConflict: function noConflict() {
+        _jquery2.default.fn.slidePanel = OtherSlidePanel;
+
+        return jQuerySlidePanel;
+      }
+    }, info, api);
   }
 );

@@ -1,89 +1,113 @@
-import $ from 'jQuery';
-import _SlidePanel from './_SlidePanel';
+import $ from 'jquery';
+import View from './view';
+import * as util from './util';
+import Instance from './instance';
 
 const SlidePanel = {
-  options: {
-    skin: null,
+  // Current state information.
+  _states: {},
+  _views: {},
+  _current: null,
 
-    classes: {
-      base: 'slidePanel',
-      show: 'slidePanel-show',
-      loading: 'slidePanel-loading',
-      content: 'slidePanel-content',
-      dragging: 'slidePanel-dragging',
-      willClose: 'slidePanel-will-close'
-    },
-
-    closeSelector: null,
-
-    template(options) {
-      'use strict';
-      return `<div class="${options.classes.base} ${options.classes.base}-${options.direction}"><div class="${options.classes.content}"></div></div>`;
-    },
-
-    loading: {
-      appendTo: 'panel', // body, panel
-      template(options) {
-        'use strict';
-        return `<div class="${options.classes.loading}"></div>`;
-      },
-      showCallback(options) {
-        'use strict';
-        this.$el.addClass(`${options.classes.loading}-show`);
-      },
-      hideCallback(options) {
-        'use strict';
-        this.$el.removeClass(`${options.classes.loading}-show`);
-      }
-    },
-
-    contentFilter(content, object) {
-      'use strict';
-      return content;
-    },
-
-    useCssTransforms3d: true,
-    useCssTransforms: true,
-    useCssTransitions: true,
-
-    dragTolerance: 150,
-
-    mouseDragHandler: null,
-    mouseDrag: true,
-    touchDrag: true,
-    pointerDrag: true,
-
-    direction: 'right', // top, bottom, left, right
-    duration: '500',
-    easing: 'ease', // linear, ease-in, ease-out, ease-in-out
-
-    // callbacks
-    beforeLoad: $.noop, // Before loading
-    afterLoad: $.noop, // After loading
-    beforeShow: $.noop, // Before opening
-    afterShow: $.noop, // After opening
-    onChange: $.noop, // On changing
-    beforeChange: $.noop, // Before changing
-    beforeHide: $.noop, // Before closing
-    afterHide: $.noop, // After closing
-    beforeDrag: $.noop, // Before drag
-    afterDrag: $.noop // After drag
-  },
+  /**
+   * Checks whether the carousel is in a specific state or not.
+   */
   is(state) {
-    'use strict';
-    return _SlidePanel.is(state);
+    return this._states[state] && this._states[state] > 0;
+  },
+
+  /**
+   * Enters a state.
+   */
+  enter(state) {
+    if (this._states[state] === undefined) {
+      this._states[state] = 0;
+    }
+
+    this._states[state]++;
+  },
+
+  /**
+   * Leaves a state.
+   */
+  leave(state) {
+    this._states[state]--;
+  },
+
+  trigger(view, event, ...args) {
+    const data = [view].concat(args);
+
+    // event
+    $(document).trigger(`slidePanel::${event}`, data);
+    if ($.isFunction(view.options[event])) {
+      view.options[event](args);
+    }
+  },
+
+  eventName(events) {
+    if (typeof events !== 'string' || events === '') {
+      return '.slidepanel';
+    }
+    events = events.split(' ');
+
+    const length = events.length;
+    for (let i = 0; i < length; i++) {
+      events[i] = `${events[i]}.slidepanel`;
+    }
+    return events.join(' ');
   },
 
   show(object, options) {
-    'use strict';
-    _SlidePanel.show(object, options);
-    return this;
+    if (!(object instanceof Instance)) {
+      switch (arguments.length) {
+        case 0:
+          object = new Instance();
+          break;
+        case 1:
+          object = new Instance(object);
+          break;
+        case 2:
+          object = new Instance(object, options);
+          break;
+        // no default
+      }
+    }
+
+    const view = this.getView(object.options);
+
+    const callback = () => {
+      view.show();
+      view.load(object);
+      this._current = view;
+    };
+    if (this._current !== null) {
+      if (view === this._current) {
+        this._current.change(object);
+      } else {
+        this._current.hide(callback);
+      }
+    } else {
+      callback();
+    }
   },
 
-  hide(...args) {
-    'use strict';
-    _SlidePanel.hide(args);
-    return this;
+  getView(options) {
+    const code = util.getHashCode(options);
+
+    if (this._views.hasOwnProperty(code)) {
+      return this._views[code];
+    }
+
+    return (this._views[code] = new View(options));
+  },
+
+  hide(object) {
+    if (object.length !== 0) {
+      const view = this.getView(object.options);
+      view.hide();
+    } else if (this._current !== null) {
+      this._current.hide();
+    }
   }
 };
 

@@ -1,52 +1,166 @@
 /**
-* jQuery slidePanel
-* a jquery slidePanel plugin
-* Compiled: Fri Sep 02 2016 15:33:28 GMT+0800 (CST)
-* @version v0.2.2
-* @link https://github.com/amazingSurge/jquery-slidePanel
-* @copyright LGPL-3.0
+* jQuery slidePanel v0.3.0
+* https://github.com/amazingSurge/jquery-slidePanel
+*
+* Copyright (c) amazingSurge
+* Released under the LGPL-3.0 license
 */
-import $ from 'jQuery';
+import $$1 from 'jquery';
 
-var getTime = () => {
-  'use strict';
+var info = {
+  version:'0.3.0'
+};
+
+function convertMatrixToArray(value) {
+    if (value && (value.substr(0, 6) === 'matrix')) {
+    return value.replace(/^.*\((.*)\)$/g, '$1').replace(/px/g, '').split(/, +/);
+  }
+  return false;
+}
+
+function getHashCode(object) {
+  /* eslint no-bitwise: "off" */
+  if (typeof object !== 'string') {
+    object = JSON.stringify(object);
+  }
+
+  let chr, hash = 0,
+    i, len;
+  if (object.length === 0) {
+    return hash;
+  }
+  for (i = 0, len = object.length; i < len; i++) {
+    chr = object.charCodeAt(i);
+    hash = ((hash << 5) - hash) + chr;
+    hash |= 0; // Convert to 32bit integer
+  }
+
+  return hash;
+}
+
+function getTime() {
   if (typeof window.performance !== 'undefined' && window.performance.now) {
     return window.performance.now();
   }
   return Date.now();
+}
+
+function isPercentage(n) {
+  return typeof n === 'string' && n.indexOf('%') !== -1;
+}
+
+function isPx(n) {
+  return typeof n === 'string' && n.indexOf('px') !== -1;
+}
+
+/* eslint no-unused-vars: "off" */
+var DEFAULTS = {
+  skin: null,
+
+  classes: {
+    base: 'slidePanel',
+    show: 'slidePanel-show',
+    loading: 'slidePanel-loading',
+    content: 'slidePanel-content',
+    dragging: 'slidePanel-dragging',
+    willClose: 'slidePanel-will-close'
+  },
+
+  closeSelector: null,
+
+  template(options) {
+    return `<div class="${options.classes.base} ${options.classes.base}-${options.direction}"><div class="${options.classes.content}"></div></div>`;
+  },
+
+  loading: {
+    appendTo: 'panel', // body, panel
+    template(options) {
+      return `<div class="${options.classes.loading}"></div>`;
+    },
+    showCallback(options) {
+      this.$el.addClass(`${options.classes.loading}-show`);
+    },
+    hideCallback(options) {
+      this.$el.removeClass(`${options.classes.loading}-show`);
+    }
+  },
+
+  contentFilter(content, object) {
+    return content;
+  },
+
+  useCssTransforms3d: true,
+  useCssTransforms: true,
+  useCssTransitions: true,
+
+  dragTolerance: 150,
+
+  mouseDragHandler: null,
+  mouseDrag: true,
+  touchDrag: true,
+  pointerDrag: true,
+
+  direction: 'right', // top, bottom, left, right
+  duration: '500',
+  easing: 'ease', // linear, ease-in, ease-out, ease-in-out
+
+  // callbacks
+  beforeLoad: $.noop, // Before loading
+  afterLoad: $.noop, // After loading
+  beforeShow: $.noop, // Before opening
+  afterShow: $.noop, // After opening
+  onChange: $.noop, // On changing
+  beforeHide: $.noop, // Before closing
+  afterHide: $.noop, // After closing
+  beforeDrag: $.noop, // Before drag
+  afterDrag: $.noop // After drag
 };
 
-const Support = ((() => {
-  'use strict';
-  const prefixes = ['webkit', 'Moz', 'O', 'ms'],
-    style = $('<support>').get(0).style;
-
-  function test(property, prefixed) {
-    let result = false;
-    const upper = property.charAt(0).toUpperCase() + property.slice(1);
-
-    if (style[property] !== undefined) {
-      result = property;
-    }
-
-    if (!result) {
-      $.each(prefixes, (i, prefix) => {
-        if (style[prefix + upper] !== undefined) {
-          result = `-${prefix.toLowerCase()}-${upper}`;
-          return false;
-        }
-      });
-    }
-
-    if (prefixed) {
-      return result;
-    }
-    if (result) {
-      return true;
-    } else {
-      return false;
-    }
+class Instance {
+  constructor(object,...args){
+    this.initialize(object,...args);
   }
+  initialize(object,...args) {
+    const options = args[0] || {};
+
+    if (typeof object === 'string') {
+      object = {
+        url: object
+      };
+    } else if (object && object.nodeType === 1) {
+      const $element = $$1(object);
+
+      object = {
+        url: $element.attr('href'),
+        settings: $element.data('settings') || {},
+        options: $element.data() || {}
+      };
+    }
+
+    if (object && object.options) {
+      object.options = $$1.extend(true, options, object.options);
+    } else {
+      object.options = options;
+    }
+
+    object.options = $$1.extend(true, {}, DEFAULTS, object.options);
+
+    $$1.extend(this, object);
+
+    return this;
+  }
+}
+
+/**
+ * Css features detect
+ **/
+let Support = {};
+
+((support) => {
+  /**
+   * Borrowed from Owl carousel
+   **/
+   'use strict';
 
   const events = {
       transition: {
@@ -66,6 +180,8 @@ const Support = ((() => {
         }
       }
     },
+    prefixes = ['webkit', 'Moz', 'O', 'ms'],
+    style = $$1('<support>').get(0).style,
     tests = {
       csstransforms() {
         return Boolean(test('transform'));
@@ -81,26 +197,50 @@ const Support = ((() => {
       }
     };
 
+  const test = (property, prefixed) => {
+    let result = false,
+      upper = property.charAt(0).toUpperCase() + property.slice(1);
 
+    if (style[property] !== undefined) {
+      result = property;
+    }
+    if (!result) {
+      $$1.each(prefixes, (i, prefix) => {
+        if (style[prefix + upper] !== undefined) {
+          result = `-${prefix.toLowerCase()}-${upper}`;
+          return false;
+        }
+        return true;
+      });
+    }
 
-  function prefixed(property) {
+    if (prefixed) {
+      return result;
+    }
+    if (result) {
+      return true;
+    }
+    return false;
+  };
+
+  const prefixed = (property) => {
     return test(property, true);
-  }
-  const support = {};
+  };
+
   if (tests.csstransitions()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.transition = new String(prefixed('transition'));
     support.transition.end = events.transition.end[support.transition];
   }
 
   if (tests.cssanimations()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.animation = new String(prefixed('animation'));
     support.animation.end = events.animation.end[support.animation];
   }
 
   if (tests.csstransforms()) {
-    /* jshint -W053 */
+    /*eslint no-new-wrappers: "off"*/
     support.transform = new String(prefixed('transform'));
     support.transform3d = tests.csstransforms3d();
   }
@@ -117,12 +257,12 @@ const Support = ((() => {
     support.pointer = false;
   }
 
-  support.prefixPointerEvent = pointerEvent => window.MSPointerEvent ?
-    `MSPointer${pointerEvent.charAt(9).toUpperCase()}${pointerEvent.substr(10)}` :
-    pointerEvent;
-
-  return support;
-}))();
+  support.prefixPointerEvent = (pointerEvent) => {
+    return window.MSPointerEvent ?
+      `MSPointer${pointerEvent.charAt(9).toUpperCase()}${pointerEvent.substr(10)}` :
+      pointerEvent;
+  };
+})(Support);
 
 function easingBezier(mX1, mY1, mX2, mY2) {
   'use strict';
@@ -188,13 +328,12 @@ const Easings = {
 
 const Animate = {
   prepareTransition($el, property, duration, easing, delay) {
-    'use strict';
-    const temp = [];
+        const temp = [];
     if (property) {
       temp.push(property);
     }
     if (duration) {
-      if ($.isNumeric(duration)) {
+      if ($$1.isNumeric(duration)) {
         duration = `${duration}ms`;
       }
       temp.push(duration);
@@ -210,14 +349,13 @@ const Animate = {
     $el.css(Support.transition, temp.join(' '));
   },
   do(view, value, callback) {
-    'use strict';
-    _SlidePanel.enter('animating');
+        SlidePanel.enter('animating');
 
     const duration = view.options.duration,
       easing = view.options.easing || 'ease';
 
-    const self = this,
-      style = view.makePositionStyle(value);
+    const that = this;
+    let style = view.makePositionStyle(value);
     let property = null;
 
     for (property in style) {
@@ -228,17 +366,17 @@ const Animate = {
 
     if (view.options.useCssTransitions && Support.transition) {
       setTimeout(() => {
-        self.prepareTransition(view.$panel, property, duration, easing);
+        that.prepareTransition(view.$panel, property, duration, easing);
       }, 20);
 
       view.$panel.one(Support.transition.end, () => {
-        if ($.isFunction(callback)) {
+        if ($$1.isFunction(callback)) {
           callback();
         }
 
         view.$panel.css(Support.transition, '');
 
-        _SlidePanel.leave('animating');
+        SlidePanel.leave('animating');
       });
       setTimeout(() => {
         view.setPosition(value);
@@ -262,20 +400,20 @@ const Animate = {
         view.setPosition(current);
 
         if (percent === 1) {
-          window.cancelAnimationFrame(self._frameId);
-          self._frameId = null;
+          window.cancelAnimationFrame(that._frameId);
+          that._frameId = null;
 
-          if ($.isFunction(callback)) {
+          if ($$1.isFunction(callback)) {
             callback();
           }
 
-          _SlidePanel.leave('animating');
+          SlidePanel.leave('animating');
         } else {
-          self._frameId = window.requestAnimationFrame(run);
+          that._frameId = window.requestAnimationFrame(run);
         }
       };
 
-      self._frameId = window.requestAnimationFrame(run);
+      that._frameId = window.requestAnimationFrame(run);
     }
   }
 };
@@ -286,20 +424,18 @@ class Loading {
   }
 
   initialize(view) {
-    'use strict';
     this._view = view;
     this.build();
   }
 
   build() {
-    'use strict';
     if (this._builded) {
       return;
     }
 
     const options = this._view.options;
     const html = options.loading.template.call(this, options);
-    this.$el = $(html);
+    this.$el = $$1(html);
 
     switch (options.loading.appendTo) {
       case 'panel':
@@ -316,28 +452,30 @@ class Loading {
   }
 
   show(callback) {
-    'use strict';
     this.build();
     const options = this._view.options;
     options.loading.showCallback.call(this, options);
 
-    if ($.isFunction(callback)) {
+    if ($$1.isFunction(callback)) {
       callback.call(this);
     }
   }
 
   hide(callback) {
-    'use strict';
     const options = this._view.options;
     options.loading.hideCallback.call(this, options);
 
-    if ($.isFunction(callback)) {
+    if ($$1.isFunction(callback)) {
       callback.call(this);
     }
   }
 }
 
 class Drag {
+  constructor(...args){
+    this.initialize(...args);
+  }
+
   initialize(view) {
     this._view = view;
     this.options = view.options;
@@ -353,10 +491,11 @@ class Drag {
       options = this.options;
 
     if (options.mouseDrag) {
-      $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName('dragstart selectstart'), () => {
+      $panel.on(SlidePanel.eventName('mousedown'), $$1.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName('dragstart selectstart'), (event) => {
+        /* eslint consistent-return: "off" */
         if (options.mouseDragHandler) {
-          if (!($(event.target).is(options.mouseDragHandler)) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+          if (!($$1(event.target).is(options.mouseDragHandler)) && !($$1(event.target).parents(options.mouseDragHandler).length > 0)) {
             return;
           }
         }
@@ -365,13 +504,13 @@ class Drag {
     }
 
     if (options.touchDrag && Support.touch) {
-      $panel.on(_SlidePanel.eventName('touchstart'), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName('touchcancel'), $.proxy(this.onDragEnd, this));
+      $panel.on(SlidePanel.eventName('touchstart'), $$1.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName('touchcancel'), $$1.proxy(this.onDragEnd, this));
     }
 
     if (options.pointerDrag && Support.pointer) {
-      $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), $.proxy(this.onDragEnd, this));
+      $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), $$1.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), $$1.proxy(this.onDragEnd, this));
     }
   }
 
@@ -379,7 +518,7 @@ class Drag {
    * Handles `touchstart` and `mousedown` events.
    */
   onDragStart(event) {
-    const self = this;
+    const that = this;
 
     if (event.which === 3) {
       return;
@@ -395,47 +534,47 @@ class Drag {
     this._drag.pointer = this.pointer(event);
 
     const callback = () => {
-      _SlidePanel.enter('dragging');
-      _SlidePanel.trigger(self._view, 'beforeDrag');
+      SlidePanel.enter('dragging');
+      SlidePanel.trigger(that._view, 'beforeDrag');
     };
 
     if (options.mouseDrag) {
       if (options.mouseDragHandler) {
-        if (!($(event.target).is(options.mouseDragHandler)) & !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+        if (!($$1(event.target).is(options.mouseDragHandler)) && !($$1(event.target).parents(options.mouseDragHandler).length > 0)) {
           return;
         }
       }
 
-      $(document).on(_SlidePanel.eventName('mouseup'), $.proxy(this.onDragEnd, this));
+      $$1(document).on(SlidePanel.eventName('mouseup'), $$1.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName('mousemove'), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName('mousemove'), $.proxy(this.onDragMove, this));
+      $$1(document).one(SlidePanel.eventName('mousemove'), $$1.proxy(function () {
+        $$1(document).on(SlidePanel.eventName('mousemove'), $$1.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
     if (options.touchDrag && Support.touch) {
-      $(document).on(_SlidePanel.eventName('touchend'), $.proxy(this.onDragEnd, this));
+      $$1(document).on(SlidePanel.eventName('touchend'), $$1.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName('touchmove'), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName('touchmove'), $.proxy(this.onDragMove, this));
+      $$1(document).one(SlidePanel.eventName('touchmove'), $$1.proxy(function () {
+        $$1(document).on(SlidePanel.eventName('touchmove'), $$1.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
     if (options.pointerDrag && Support.pointer) {
-      $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), $.proxy(this.onDragEnd, this));
+      $$1(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), $$1.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(this.onDragMove, this));
+      $$1(document).one(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $$1.proxy(function () {
+        $$1(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $$1.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
-    $(document).on(_SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
+    $$1(document).on(SlidePanel.eventName('blur'), $$1.proxy(this.onDragEnd, this));
 
     event.preventDefault();
   }
@@ -446,7 +585,7 @@ class Drag {
   onDragMove(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
@@ -460,7 +599,7 @@ class Drag {
       this._view.$panel.removeClass(this.options.classes.willClose);
     }
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
@@ -474,7 +613,7 @@ class Drag {
   onDragEnd(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
+    $$1(document).off(SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
     this._view.$panel.removeClass(this.options.classes.dragging);
 
@@ -483,18 +622,18 @@ class Drag {
       this._view.$panel.removeClass(this.options.classes.willClose);
     }
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
-    _SlidePanel.leave('dragging');
+    SlidePanel.leave('dragging');
 
-    _SlidePanel.trigger(this._view, 'afterDrag');
+    SlidePanel.trigger(this._view, 'afterDrag');
 
     if (Math.abs(distance) < this.options.dragTolerance) {
       this._view.revert();
     } else {
-      _SlidePanel.hide();
+      SlidePanel.hide();
     }
   }
 
@@ -557,28 +696,11 @@ class Drag {
   }
 }
 
-var isPercentage = (n) => {
-  'use strict';
-  return typeof n === 'string' && n.indexOf('%') !== -1;
-};
-
-var isPx = (n) => {
-  'use strict';
-  return typeof n === 'string' && n.indexOf('px') !== -1;
-};
-
-var convertMatrixToArray = (value) => {
-  'use strict';
-  if (value && (value.substr(0, 6) === 'matrix')) {
-    return value.replace(/^.*\((.*)\)$/g, '$1').replace(/px/g, '').split(/, +/);
-  }
-  return false;
-};
-
 class View {
   constructor(options) {
     this.initialize(options);
   }
+
   initialize(options) {
     this.options = options;
     this._instance = null;
@@ -610,9 +732,9 @@ class View {
     const options = this.options;
 
     const html = options.template.call(this, options);
-    const self = this;
+    const that = this;
 
-    this.$panel = $(html).appendTo('body');
+    this.$panel = $$1(html).appendTo('body');
     if (options.skin) {
       this.$panel.addClass(options.skin);
     }
@@ -620,7 +742,7 @@ class View {
 
     if (options.closeSelector) {
       this.$panel.on('click', options.closeSelector, () => {
-        self.hide();
+        that.hide();
         return false;
       });
     }
@@ -637,6 +759,7 @@ class View {
   }
 
   getHidePosition() {
+    /* eslint consistent-return: "off" */
     const options = this.options;
 
     if (options.useCssTransforms || options.useCssTransforms3d) {
@@ -653,10 +776,10 @@ class View {
     switch (options.direction) {
       case 'top':
       case 'bottom':
-        return parseFloat(-(this._length / $(window).height()) * 100, 10);
+        return parseFloat(-(this._length / $$1(window).height()) * 100, 10);
       case 'left':
       case 'right':
-        return parseFloat(-(this._length / $(window).width()) * 100, 10);
+        return parseFloat(-(this._length / $$1(window).width()) * 100, 10);
       // no default
     }
   }
@@ -667,20 +790,20 @@ class View {
   }
 
   load(object) {
-    const self = this;
+    const that = this;
     const options = object.options;
 
-    _SlidePanel.trigger(this, 'beforeLoad', object);
+    SlidePanel.trigger(this, 'beforeLoad', object);
     this.empty();
 
     function setContent(content) {
       content = options.contentFilter.call(this, content, object);
-      self.$content.html(content);
-      self.hideLoading();
+      that.$content.html(content);
+      that.hideLoading();
 
-      self._instance = object;
+      that._instance = object;
 
-      _SlidePanel.trigger(self, 'afterLoad', object);
+      SlidePanel.trigger(that, 'afterLoad', object);
     }
 
     if (object.content) {
@@ -688,7 +811,7 @@ class View {
     } else if (object.url) {
       this.showLoading();
 
-      $.ajax(object.url, object.settings || {}).done(data => {
+      $$1.ajax(object.url, object.settings || {}).done(data => {
         setContent(data);
       });
     } else {
@@ -697,82 +820,82 @@ class View {
   }
 
   showLoading() {
-    const self = this;
+    const that = this;
     this.loading.show(() => {
-      self._isLoading = true;
+      that._isLoading = true;
     });
   }
 
   hideLoading() {
-    const self = this;
+    const that = this;
     this.loading.hide(() => {
-      self._isLoading = false;
+      that._isLoading = false;
     });
   }
 
   show(callback) {
     this.build();
 
-    _SlidePanel.enter('show');
-    _SlidePanel.trigger(this, 'beforeShow');
+    SlidePanel.enter('show');
+    SlidePanel.trigger(this, 'beforeShow');
 
-    $('html').addClass(`${this.options.classes.base}-html`);
+    $$1('html').addClass(`${this.options.classes.base}-html`);
     this.$panel.addClass(this.options.classes.show);
 
-    const self = this;
+    const that = this;
     Animate.do(this, 0, () => {
-      self._showed = true;
-      _SlidePanel.trigger(self, 'afterShow');
+      that._showed = true;
+      SlidePanel.trigger(that, 'afterShow');
 
-      if ($.isFunction(callback)) {
-        callback.call(self);
+      if ($$1.isFunction(callback)) {
+        callback.call(that);
       }
     });
   }
 
   change(object) {
-    _SlidePanel.trigger(this, 'beforeShow');
+    SlidePanel.trigger(this, 'beforeShow');
 
-    _SlidePanel.trigger(this, 'onChange', object, this._instance);
+    SlidePanel.trigger(this, 'onChange', object, this._instance);
 
     this.load(object);
 
-    _SlidePanel.trigger(this, 'afterShow');
+    SlidePanel.trigger(this, 'afterShow');
   }
 
   revert(callback) {
-    const self = this;
+    const that = this;
     Animate.do(this, 0, () => {
-      if ($.isFunction(callback)) {
-        callback.call(self);
+      if ($$1.isFunction(callback)) {
+        callback.call(that);
       }
     });
   }
 
   hide(callback) {
-    _SlidePanel.leave('show');
-    _SlidePanel.trigger(this, 'beforeHide');
+    SlidePanel.leave('show');
+    SlidePanel.trigger(this, 'beforeHide');
 
-    const self = this;
+    const that = this;
 
     Animate.do(this, this.getHidePosition(), () => {
-      self.$panel.removeClass(self.options.classes.show);
-      self._showed = false;
-      self._instance = null;
+      that.$panel.removeClass(that.options.classes.show);
+      that._showed = false;
+      that._instance = null;
 
-      if (_SlidePanel._current === self) {
-        _SlidePanel._current = null;
+      if (SlidePanel._current === that) {
+        SlidePanel._current = null;
       }
 
-      if (!_SlidePanel.is('show')) {
-        $('html').removeClass(`${self.options.classes.base}-html`);
+      if (!SlidePanel.is('show')) {
+        $$1('html').removeClass(`${that.options.classes.base}-html`);
       }
 
-      if ($.isFunction(callback)) {
-        callback.call(self);
+      if ($$1.isFunction(callback)) {
+        callback.call(that);
       }
 
-      _SlidePanel.trigger(self, 'afterHide');
+      SlidePanel.trigger(that, 'afterHide');
     });
   }
 
@@ -840,27 +963,7 @@ class View {
   }
 }
 
-var getHashCode = (object) => {
-  'use strict';
-  if (typeof object !== 'string') {
-    object = JSON.stringify(object);
-  }
-
-  let chr, hash = 0,
-    i, len;
-  if (object.length === 0) {
-    return hash;
-  }
-  for (i = 0, len = object.length; i < len; i++) {
-    chr = object.charCodeAt(i);
-    hash = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-
-  return hash;
-};
-
-const _SlidePanel = {
+const SlidePanel = {
   // Current state information.
   _states: {},
   _views: {},
@@ -870,7 +973,6 @@ const _SlidePanel = {
    * Checks whether the carousel is in a specific state or not.
    */
   is(state) {
-    'use strict';
     return this._states[state] && this._states[state] > 0;
   },
 
@@ -878,7 +980,6 @@ const _SlidePanel = {
    * Enters a state.
    */
   enter(state) {
-    'use strict';
     if (this._states[state] === undefined) {
       this._states[state] = 0;
     }
@@ -890,23 +991,20 @@ const _SlidePanel = {
    * Leaves a state.
    */
   leave(state) {
-    'use strict';
     this._states[state]--;
   },
 
   trigger(view, event, ...args) {
-    'use strict';
     const data = [view].concat(args);
 
     // event
-    $(document).trigger(`slidePanel::${event}`, data);
-    if ($.isFunction(view.options[event])) {
+    $$1(document).trigger(`slidePanel::${event}`, data);
+    if ($$1.isFunction(view.options[event])) {
       view.options[event](args);
     }
   },
 
   eventName(events) {
-    'use strict';
     if (typeof events !== 'string' || events === '') {
       return '.slidepanel';
     }
@@ -920,7 +1018,6 @@ const _SlidePanel = {
   },
 
   show(object, options) {
-    'use strict';
     if (!(object instanceof Instance)) {
       switch (arguments.length) {
         case 0:
@@ -937,11 +1034,11 @@ const _SlidePanel = {
     }
 
     const view = this.getView(object.options);
-    const self = this;
+
     const callback = () => {
       view.show();
       view.load(object);
-      self._current = view;
+      this._current = view;
     };
     if (this._current !== null) {
       if (view === this._current) {
@@ -955,7 +1052,6 @@ const _SlidePanel = {
   },
 
   getView(options) {
-    'use strict';
     const code = getHashCode(options);
 
     if (this._views.hasOwnProperty(code)) {
@@ -966,7 +1062,6 @@ const _SlidePanel = {
   },
 
   hide(object) {
-    'use strict';
     if (object.length !== 0) {
       const view = this.getView(object.options);
       view.hide();
@@ -976,138 +1071,24 @@ const _SlidePanel = {
   }
 };
 
-const SlidePanel$1 = {
-  options: {
-    skin: null,
-
-    classes: {
-      base: 'slidePanel',
-      show: 'slidePanel-show',
-      loading: 'slidePanel-loading',
-      content: 'slidePanel-content',
-      dragging: 'slidePanel-dragging',
-      willClose: 'slidePanel-will-close'
-    },
-
-    closeSelector: null,
-
-    template(options) {
-      'use strict';
-      return `<div class="${options.classes.base} ${options.classes.base}-${options.direction}"><div class="${options.classes.content}"></div></div>`;
-    },
-
-    loading: {
-      appendTo: 'panel', // body, panel
-      template(options) {
-        'use strict';
-        return `<div class="${options.classes.loading}"></div>`;
-      },
-      showCallback(options) {
-        'use strict';
-        this.$el.addClass(`${options.classes.loading}-show`);
-      },
-      hideCallback(options) {
-        'use strict';
-        this.$el.removeClass(`${options.classes.loading}-show`);
-      }
-    },
-
-    contentFilter(content, object) {
-      'use strict';
-      return content;
-    },
-
-    useCssTransforms3d: true,
-    useCssTransforms: true,
-    useCssTransitions: true,
-
-    dragTolerance: 150,
-
-    mouseDragHandler: null,
-    mouseDrag: true,
-    touchDrag: true,
-    pointerDrag: true,
-
-    direction: 'right', // top, bottom, left, right
-    duration: '500',
-    easing: 'ease', // linear, ease-in, ease-out, ease-in-out
-
-    // callbacks
-    beforeLoad: $.noop, // Before loading
-    afterLoad: $.noop, // After loading
-    beforeShow: $.noop, // Before opening
-    afterShow: $.noop, // After opening
-    onChange: $.noop, // On changing
-    beforeChange: $.noop, // Before changing
-    beforeHide: $.noop, // Before closing
-    afterHide: $.noop, // After closing
-    beforeDrag: $.noop, // Before drag
-    afterDrag: $.noop // After drag
-  },
+var api = {
   is(state) {
-    'use strict';
-    return _SlidePanel.is(state);
+    return SlidePanel.is(state);
   },
 
   show(object, options) {
-    'use strict';
-    _SlidePanel.show(object, options);
+    SlidePanel.show(object, options);
     return this;
   },
 
   hide(...args) {
-    'use strict';
-    _SlidePanel.hide(args);
+    SlidePanel.hide(args);
     return this;
   }
 };
 
-class Instance {
-  constructor(object,...args){
-    this.initialize(object,...args);
-  }
-  initialize(object,...args) {
-    'use strict';
-    const options = args[0] || {};
-
-    if (typeof object === 'string') {
-      object = {
-        url: object
-      };
-    } else if (object && object.nodeType === 1) {
-      const $element = $(object);
-
-      object = {
-        url: $element.attr('href'),
-        settings: $element.data('settings') || {},
-        options: $element.data() || {}
-      };
-    }
-
-    if (object && object.options) {
-      object.options = $.extend(true, options, object.options);
-    } else {
-      object.options = options;
-    }
-
-    object.options = $.extend(true, {}, SlidePanel$1.options, object.options);
-
-    $.extend(this, object);
-
-    return this;
-  }
-}
-
-/*! jQuery slidePanel - v0.2.2 - 2015-10-14
- * https://github.com/amazingSurge/jquery-slidePanel
- * Copyright (c) 2015 amazingSurge; Licensed GPL */
-const SlidePanel = $.slidePanel = function(...args) {
-  'use strict';
-  SlidePanel.show(...args);
-};
 if (!Date.now) {
   Date.now = () => {
-    'use strict';
     return new Date().getTime();
   };
 }
@@ -1118,10 +1099,10 @@ for (let i = 0; i < vendors.length && !window.requestAnimationFrame; ++i) {
   window.requestAnimationFrame = window[`${vp}RequestAnimationFrame`];
   window.cancelAnimationFrame = (window[`${vp}CancelAnimationFrame`] || window[`${vp}CancelRequestAnimationFrame`]);
 }
+
 if (/iP(ad|hone|od).*OS (6|7|8)/.test(window.navigator.userAgent) || !window.requestAnimationFrame || !window.cancelAnimationFrame) {
   let lastTime = 0;
   window.requestAnimationFrame = callback => {
-    'use strict';
     const now = getTime();
     const nextTime = Math.max(lastTime + 16, now);
     return setTimeout(() => {
@@ -1132,124 +1113,38 @@ if (/iP(ad|hone|od).*OS (6|7|8)/.test(window.navigator.userAgent) || !window.req
   window.cancelAnimationFrame = clearTimeout;
 }
 
-SlidePanel.options = {
-  skin: null,
+const OtherSlidePanel = $$1.fn.slidePanel;
 
-  classes: {
-    base: 'slidePanel',
-    show: 'slidePanel-show',
-    loading: 'slidePanel-loading',
-    content: 'slidePanel-content',
-    dragging: 'slidePanel-dragging',
-    willClose: 'slidePanel-will-close'
-  },
-
-  closeSelector: null,
-
-  template(options) {
-    'use strict';
-    return `<div class="${options.classes.base} ${options.classes.base}-${options.direction}"><div class="${options.classes.content}"></div></div>`;
-  },
-
-  loading: {
-    appendTo: 'panel', // body, panel
-    template(options) {
-      'use strict';
-      return `<div class="${options.classes.loading}"></div>`;
-    },
-    showCallback(options) {
-      'use strict';
-      this.$el.addClass(`${options.classes.loading}-show`);
-    },
-    hideCallback(options) {
-      'use strict';
-      this.$el.removeClass(`${options.classes.loading}-show`);
-    }
-  },
-
-  contentFilter(content, object) {
-    'use strict';
-    return content;
-  },
-
-  useCssTransforms3d: true,
-  useCssTransforms: true,
-  useCssTransitions: true,
-
-  dragTolerance: 150,
-
-  mouseDragHandler: null,
-  mouseDrag: true,
-  touchDrag: true,
-  pointerDrag: true,
-
-  direction: 'right', // top, bottom, left, right
-  duration: '500',
-  easing: 'ease', // linear, ease-in, ease-out, ease-in-out
-
-  // callbacks
-  beforeLoad: $.noop, // Before loading
-  afterLoad: $.noop, // After loading
-  beforeShow: $.noop, // Before opening
-  afterShow: $.noop, // After opening
-  onChange: $.noop, // On changing
-  beforeChange: $.noop, // Before changing
-  beforeHide: $.noop, // Before closing
-  afterHide: $.noop, // After closing
-  beforeDrag: $.noop, // Before drag
-  afterDrag: $.noop // After drag
-};
-
-$.extend(SlidePanel, {
-  is(state) {
-    'use strict';
-    return _SlidePanel.is(state);
-  },
-
-  show(object, options) {
-    'use strict';
-    _SlidePanel.show(object, options);
-    return this;
-  },
-
-  hide(...args) {
-    'use strict';
-    _SlidePanel.hide(args);
-    return this;
-  }
-});
-
-$.fn.slidePanel = function(options, ...args) {
-  'use strict';
+const jQuerySlidePanel = function(options, ...args) {
   const method = options;
 
   if (typeof options === 'string') {
     return this.each(function() {
-      let instance = $.data(this, 'slidePanel');
+      let instance = $$1.data(this, 'slidePanel');
 
       if (!(instance instanceof Instance)) {
         instance = new Instance(this, args);
-        $.data(this, 'slidePanel', instance);
+        $$1.data(this, 'slidePanel', instance);
       }
 
       switch (method) {
         case 'hide':
-          _SlidePanel.hide(instance);
+          SlidePanel.hide(instance);
           break;
         case 'show':
-          _SlidePanel.show(instance);
+          SlidePanel.show(instance);
           break;
           // no default
       }
     });
   }
   return this.each(function() {
-    if (!$.data(this, 'slidePanel')) {
-      $.data(this, 'slidePanel', new Instance(this, options));
+    if (!$$1.data(this, 'slidePanel')) {
+      $$1.data(this, 'slidePanel', new Instance(this, options));
 
-      $(this).on('click', function(e) {
-        const instance = $.data(this, 'slidePanel');
-        _SlidePanel.show(instance);
+      $$1(this).on('click', function(e) {
+        const instance = $$1.data(this, 'slidePanel');
+        SlidePanel.show(instance);
 
         e.preventDefault();
         e.stopPropagation();
@@ -1257,3 +1152,19 @@ $.fn.slidePanel = function(options, ...args) {
     }
   });
 };
+
+$$1.fn.slidePanel = jQuerySlidePanel;
+
+$$1.slidePanel = function(...args) {
+  SlidePanel.show(...args);
+};
+
+$$1.extend($$1.slidePanel, {
+  setDefaults: function(options) {
+    $$1.extend(DEFAULTS, $$1.isPlainObject(options) && options);
+  },
+  noConflict: function() {
+    $$1.fn.slidePanel = OtherSlidePanel;
+    return jQuerySlidePanel;
+  }
+}, info, api);

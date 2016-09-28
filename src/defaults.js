@@ -1,3 +1,4 @@
+/* eslint no-unused-vars: "off" */
 export default {
   skin: null,
 
@@ -13,28 +14,23 @@ export default {
   closeSelector: null,
 
   template(options) {
-    'use strict';
     return `<div class="${options.classes.base} ${options.classes.base}-${options.direction}"><div class="${options.classes.content}"></div></div>`;
   },
 
   loading: {
     appendTo: 'panel', // body, panel
     template(options) {
-      'use strict';
       return `<div class="${options.classes.loading}"></div>`;
     },
     showCallback(options) {
-      'use strict';
       this.$el.addClass(`${options.classes.loading}-show`);
     },
     hideCallback(options) {
-      'use strict';
       this.$el.removeClass(`${options.classes.loading}-show`);
     }
   },
 
   contentFilter(content, object) {
-    'use strict';
     return content;
   },
 
@@ -59,7 +55,6 @@ export default {
   beforeShow: $.noop, // Before opening
   afterShow: $.noop, // After opening
   onChange: $.noop, // On changing
-  beforeChange: $.noop, // Before changing
   beforeHide: $.noop, // Before closing
   afterHide: $.noop, // After closing
   beforeDrag: $.noop, // Before drag

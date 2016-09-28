@@ -1,10 +1,9 @@
 /**
-* jQuery slidePanel
-* a jquery slidePanel plugin
-* Compiled: Fri Sep 02 2016 15:33:28 GMT+0800 (CST)
-* @version v0.2.2
-* @link https://github.com/amazingSurge/jquery-slidePanel
-* @copyright LGPL-3.0
+* jQuery slidePanel v0.3.0
+* https://github.com/amazingSurge/jquery-slidePanel
+*
+* Copyright (c) amazingSurge
+* Released under the LGPL-3.0 license
 */
 .slidePanel {
   position: fixed;

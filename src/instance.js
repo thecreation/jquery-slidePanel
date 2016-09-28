@@ -1,12 +1,11 @@
-import $ from 'jQuery';
-import SlidePanel from './slidePanel';
+import $ from 'jquery';
+import DEFAULTS from './defaults';
 
 class Instance {
   constructor(object,...args){
     this.initialize(object,...args);
   }
   initialize(object,...args) {
-    'use strict';
     const options = args[0] || {};
 
     if (typeof object === 'string') {
@@ -29,7 +28,7 @@ class Instance {
       object.options = options;
     }
 
-    object.options = $.extend(true, {}, SlidePanel.options, object.options);
+    object.options = $.extend(true, {}, DEFAULTS, object.options);
 
     $.extend(this, object);
 

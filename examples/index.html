@@ -1,0 +1,301 @@
+<!doctype html>
+<html class="no-js">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<title>SlidePanel</title>
+	<meta name="description" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="css/normalize.css">
+	<link rel="stylesheet" href="css/main.css">
+	<link rel="stylesheet" href="css/spinner.css">
+	<link rel="stylesheet" href="../dist/css/slidePanel.css">
+	<script src="js/jquery.js"></script>
+	<script src="js/toc.js"></script>
+	<script src="js/prism.js"></script>
+	<script src="../dist/jquery-slidePanel.js"></script>
+	<style type="text/css">
+		.slidePanel {
+			padding: 20px;
+			color: #fff;
+			background: rgba(0, 0, 0, .4);
+		}
+
+		.slidePanel-will-close {
+			background: rgba(0, 0, 255, .4);
+		}
+
+		.slidePanel.skin1 {
+			background: rgba(100, 0, 0, .4);
+		}
+
+		.slidePanel.skin2 {
+			background: rgba(0, 100, 0, .4);
+		}
+	</style>
+</head>
+<body>
+  <!--[if lt IE 8]>
+    <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+  <![endif]-->
+	<!--[if lt IE 8]>
+		<p class="chromeframe">You are using an outdated browser. <a href="http://browsehappy.com/">Upgrade your browser today</a> or <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to better experience this site.</p>
+	<![endif]-->
+	<div id="toc"></div>
+	<div id="wrapper">
+		<section>
+			<h2>Basic</h2>
+			<div class="example">
+				<a href="ajax.html" class="example-basic" data-direction="top">top</a>
+				<a href="ajax.html" class="example-basic" data-direction="left">left</a>
+				<a href="ajax.html" class="example-basic" data-direction="right">right</a>
+				<a href="ajax.html" class="example-basic" data-direction="bottom">bottom</a>
+			</div>
+		</section>
+		<section>
+			<h2>Without Transition</h2>
+			<div class="example">
+				<button class="example-show" data-direction="top">top</button>
+				<button class="example-show" data-direction="left">left</button>
+				<button class="example-show" data-direction="right">right</button>
+				<button class="example-show" data-direction="bottom">bottom</button>
+			</div>
+		</section>
+		<section>
+			<h2>Easing</h2>
+			<div class="example">
+				<button class="example-easing" data-easing="ease">ease</button>
+				<button class="example-easing" data-easing="linear">linear</button>
+				<button class="example-easing" data-easing="ease-in">ease-in</button>
+				<button class="example-easing" data-easing="ease-out">ease-out</button>
+				<button class="example-easing" data-easing="ease-in-out">ease-in-out</button>
+			</div>
+		</section>
+		<section>
+			<h2>Ajax</h2>
+			<div class="example">
+				<button class="example-ajax">ajax</button>
+			</div>
+		</section>
+		<section>
+			<h2>Group</h2>
+			<p>Switch Content in Some View</p>
+			<div class="example">
+				<a href="ajax.html" class="example-group">Content 1</a>
+				<a href="ajax2.html" class="example-group">Content 2</a>
+			</div>
+		</section>
+		<section>
+			<h2>Skin</h2>
+			<div class="example">
+				<a href="ajax.html" class="example-skin" data-skin="">no skin</a>
+				<a href="ajax.html" class="example-skin" data-skin="skin1">skin1</a>
+				<a href="ajax.html" class="example-skin" data-skin="skin2">skin2</a>
+			</div>
+		</section>
+		<section>
+			<h2>Mouse Drag Handler</h2>
+			<div class="example">
+				<button class="example-handler">show</button>
+			</div>
+			<style type="text/css">
+				.handler {
+					width: 10px;
+					position: absolute;
+					top: 0;
+					left: 0;
+					height: 100%;
+					background: rgba(255, 100, 255, 0.1);
+				}
+
+				.handler:hover {
+					background: rgba(255, 100, 255, 0.5);
+				}
+			</style>
+		</section>
+		<section>
+			<h2>Close Selector</h2>
+			<div class="example">
+				<button class="example-close">close</button>
+			</div>
+		</section>
+		<section>
+			<h2>Global Api</h2>
+			<div class="example">
+				<button class="example-api-show">Show</button>
+				<button class="example-api-hide">Hide</button>
+			</div>
+		</section>
+		<section>
+			<h2>Selector Call</h2>
+			<div class="example">
+				<a href="ajax.html" class="example-instance">instance</a>
+				<button class="example-instance-show">Show</button>
+				<button class="example-instance-hide">Hide</button>
+			</div>
+		</section>
+		<section>
+			<h2>Callbacks</h2>
+			<div class="example">
+				<button class="example-callbacks">Callbacks</button>
+			</div>
+		</section>
+		<section>
+			<h2>Passing data to view</h2>
+			<div class="example">
+				<button class="example-data" data-hello="world">Data</button>
+			</div>
+		</section>
+	</div>
+	<script>
+		(function() {
+			$('#toc').toc();
+		})();
+		$(document).ready(function() {
+			$('.example-basic').slidePanel({
+				useCssTransforms3d: true,
+				useCssTransforms: true,
+				useCssTransitions: true
+			});
+			$('.example-show').on('click', function() {
+				var direction = $(this).data('direction');
+				$.slidePanel.show({
+					content: '<div><h2>Title</h2><p>content here</p></div>'
+				}, {
+					direction: direction,
+					useCssTransforms3d: false,
+					useCssTransforms: false,
+					useCssTransitions: false
+				});
+			});
+			$('.example-handler').on('click', function() {
+				$.slidePanel.show({
+					content: '<div><h2>Title</h2><p>content here</p></div><div class="handler"></div>'
+				}, {
+					mouseDragHandler: '.handler'
+				});
+			});
+			$('.example-close').on('click', function() {
+				$.slidePanel.show({
+					content: '<div><h2>Title</h2><p>content here</p><a href="#" class="close">click to close</a></div>'
+				}, {
+					closeSelector: '.close'
+				});
+			});
+			$('.example-easing').on('click', function() {
+				var easing = $(this).data('easing');
+				$.slidePanel.show({
+					content: '<div><h2>Title</h2><p>content here</p></div>'
+				}, {
+					easing: easing
+				});
+			});
+			$('.example-skin').slidePanel();
+			$('.example-group').slidePanel({
+				beforeLoad: function(coming, previous) {
+					console.info('beforeLoad');
+				},
+				afterLoad: function(coming, previous) {
+					console.info('afterLoad');
+				},
+				onChange: function(coming, previous) {
+					console.info('onChange');
+				},
+				beforeShow: function() {
+					console.info('beforeShow');
+				},
+				afterShow: function() {
+					console.info('afterShow');
+				},
+				beforeHide: function() {
+					console.info('beforeHide');
+				},
+				afterHide: function() {
+					console.info('afterHide');
+				},
+				beforeDrag: function() {
+					console.info('beforeDrag');
+				},
+				afterDrag: function() {
+					console.info('afterDrag');
+				}
+			});
+			$('.example-ajax').on('click', function() {
+				$.slidePanel.show({
+					url: 'ajax.html',
+					settings: {
+						method: 'GET'
+					}
+				}, {
+					loading: {
+						template: function(options) {
+							return '<div class="' + options.classes.loading + '"><div class="spinner"></div></div>';
+						}
+					}
+				});
+			});
+			$('.example-api-show').on('click', function() {
+				$.slidePanel.show({
+					url: 'ajax.html',
+					settings: {
+						method: 'GET'
+					}
+				});
+			});
+			$('.example-api-hide').on('click', function() {
+				$.slidePanel.hide();
+			});
+			$('.example-instance').slidePanel();
+			$('.example-instance-hide').on('click', function() {
+				$('.example-instance').slidePanel('hide');
+			});
+			$('.example-instance-show').on('click', function() {
+				$('.example-instance').slidePanel('show');
+			});
+			$('.example-callbacks').on('click', function() {
+				$.slidePanel.show({
+					url: 'ajax.html'
+				}, {
+					beforeLoad: function(coming, previous) {
+						console.info('beforeLoad');
+					},
+					afterLoad: function(coming, previous) {
+						console.info('afterLoad');
+					},
+					onChange: function(coming, previous) {
+						console.info('onChange');
+					},
+					beforeShow: function() {
+						console.info('beforeShow');
+					},
+					afterShow: function() {
+						console.info('afterShow');
+					},
+					beforeHide: function() {
+						console.info('beforeHide');
+					},
+					afterHide: function() {
+						console.info('afterHide');
+					},
+					beforeDrag: function() {
+						console.info('beforeDrag');
+					},
+					afterDrag: function() {
+						console.info('afterDrag');
+					}
+				});
+			});
+			$('.example-data').on('click', function(e) {
+				$.slidePanel.show({
+					target: e.target
+				}, {
+					contentFilter: function(data, object) {
+						var $target = $(object.target);
+						return '<h3>hello ' + $target.data('hello') + '</h3>';
+					},
+				});
+			});
+		});
+	</script>
+</body>
+</html>

@@ -1,8 +1,12 @@
-import $ from 'jQuery';
+import $ from 'jquery';
 import Support from './support';
-import _SlidePanel from './_SlidePanel';
+import SlidePanel from './slidePanel';
 
 class Drag {
+  constructor(...args){
+    this.initialize(...args);
+  }
+
   initialize(view) {
     this._view = view;
     this.options = view.options;
@@ -18,8 +22,9 @@ class Drag {
       options = this.options;
 
     if (options.mouseDrag) {
-      $panel.on(_SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName('dragstart selectstart'), () => {
+      $panel.on(SlidePanel.eventName('mousedown'), $.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName('dragstart selectstart'), (event) => {
+        /* eslint consistent-return: "off" */
         if (options.mouseDragHandler) {
           if (!($(event.target).is(options.mouseDragHandler)) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
             return;
@@ -30,13 +35,13 @@ class Drag {
     }
 
     if (options.touchDrag && Support.touch) {
-      $panel.on(_SlidePanel.eventName('touchstart'), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName('touchcancel'), $.proxy(this.onDragEnd, this));
+      $panel.on(SlidePanel.eventName('touchstart'), $.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName('touchcancel'), $.proxy(this.onDragEnd, this));
     }
 
     if (options.pointerDrag && Support.pointer) {
-      $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), $.proxy(this.onDragStart, this));
-      $panel.on(_SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), $.proxy(this.onDragEnd, this));
+      $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointerdown')), $.proxy(this.onDragStart, this));
+      $panel.on(SlidePanel.eventName(Support.prefixPointerEvent('pointercancel')), $.proxy(this.onDragEnd, this));
     }
   }
 
@@ -44,7 +49,7 @@ class Drag {
    * Handles `touchstart` and `mousedown` events.
    */
   onDragStart(event) {
-    const self = this;
+    const that = this;
 
     if (event.which === 3) {
       return;
@@ -60,47 +65,47 @@ class Drag {
     this._drag.pointer = this.pointer(event);
 
     const callback = () => {
-      _SlidePanel.enter('dragging');
-      _SlidePanel.trigger(self._view, 'beforeDrag');
+      SlidePanel.enter('dragging');
+      SlidePanel.trigger(that._view, 'beforeDrag');
     };
 
     if (options.mouseDrag) {
       if (options.mouseDragHandler) {
-        if (!($(event.target).is(options.mouseDragHandler)) & !($(event.target).parents(options.mouseDragHandler).length > 0)) {
+        if (!($(event.target).is(options.mouseDragHandler)) && !($(event.target).parents(options.mouseDragHandler).length > 0)) {
           return;
         }
       }
 
-      $(document).on(_SlidePanel.eventName('mouseup'), $.proxy(this.onDragEnd, this));
+      $(document).on(SlidePanel.eventName('mouseup'), $.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName('mousemove'), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName('mousemove'), $.proxy(this.onDragMove, this));
+      $(document).one(SlidePanel.eventName('mousemove'), $.proxy(function () {
+        $(document).on(SlidePanel.eventName('mousemove'), $.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
     if (options.touchDrag && Support.touch) {
-      $(document).on(_SlidePanel.eventName('touchend'), $.proxy(this.onDragEnd, this));
+      $(document).on(SlidePanel.eventName('touchend'), $.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName('touchmove'), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName('touchmove'), $.proxy(this.onDragMove, this));
+      $(document).one(SlidePanel.eventName('touchmove'), $.proxy(function () {
+        $(document).on(SlidePanel.eventName('touchmove'), $.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
     if (options.pointerDrag && Support.pointer) {
-      $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), $.proxy(this.onDragEnd, this));
+      $(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointerup')), $.proxy(this.onDragEnd, this));
 
-      $(document).one(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(function () {
-        $(document).on(_SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(this.onDragMove, this));
+      $(document).one(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(function () {
+        $(document).on(SlidePanel.eventName(Support.prefixPointerEvent('pointermove')), $.proxy(this.onDragMove, this));
 
         callback();
       }, this));
     }
 
-    $(document).on(_SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
+    $(document).on(SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
 
     event.preventDefault();
   }
@@ -111,7 +116,7 @@ class Drag {
   onDragMove(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
@@ -125,7 +130,7 @@ class Drag {
       this._view.$panel.removeClass(this.options.classes.willClose);
     }
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
@@ -139,7 +144,7 @@ class Drag {
   onDragEnd(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    $(document).off(_SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
+    $(document).off(SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
     this._view.$panel.removeClass(this.options.classes.dragging);
 
@@ -148,18 +153,18 @@ class Drag {
       this._view.$panel.removeClass(this.options.classes.willClose);
     }
 
-    if (!_SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging')) {
       return;
     }
 
-    _SlidePanel.leave('dragging');
+    SlidePanel.leave('dragging');
 
-    _SlidePanel.trigger(this._view, 'afterDrag');
+    SlidePanel.trigger(this._view, 'afterDrag');
 
     if (Math.abs(distance) < this.options.dragTolerance) {
       this._view.revert();
     } else {
-      _SlidePanel.hide();
+      SlidePanel.hide();
     }
   }
 
