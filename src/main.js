@@ -80,7 +80,7 @@ $.slidePanel = function(...args) {
 
 $.extend($.slidePanel, {
   setDefaults: function(options) {
-    $.extend(DEFAULTS, $.isPlainObject(options) && options);
+    $.extend(true, DEFAULTS, $.isPlainObject(options) && options);
   },
   noConflict: function() {
     $.fn.slidePanel = OtherSlidePanel;

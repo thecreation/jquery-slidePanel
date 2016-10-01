@@ -1,5 +1,5 @@
 /**
-* jQuery slidePanel v0.3.0
+* jQuery slidePanel v0.3.1
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
@@ -8,7 +8,7 @@
 import $$1 from 'jquery';
 
 var info = {
-  version:'0.3.0'
+  version:'0.3.1'
 };
 
 function convertMatrixToArray(value) {
@@ -633,7 +633,8 @@ class Drag {
     if (Math.abs(distance) < this.options.dragTolerance) {
       this._view.revert();
     } else {
-      SlidePanel.hide();
+      this._view.hide();
+      // SlidePanel.hide();
     }
   }
 
@@ -1062,7 +1063,7 @@ const SlidePanel = {
   },
 
   hide(object) {
-    if (object.length !== 0) {
+    if (typeof object !== 'undefined' && typeof object.options !== 'undefined') {
       const view = this.getView(object.options);
       view.hide();
     } else if (this._current !== null) {
@@ -1161,7 +1162,7 @@ $$1.slidePanel = function(...args) {
 
 $$1.extend($$1.slidePanel, {
   setDefaults: function(options) {
-    $$1.extend(DEFAULTS, $$1.isPlainObject(options) && options);
+    $$1.extend(true, DEFAULTS, $$1.isPlainObject(options) && options);
   },
   noConflict: function() {
     $$1.fn.slidePanel = OtherSlidePanel;

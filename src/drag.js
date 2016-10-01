@@ -164,7 +164,8 @@ class Drag {
     if (Math.abs(distance) < this.options.dragTolerance) {
       this._view.revert();
     } else {
-      SlidePanel.hide();
+      this._view.hide();
+      // SlidePanel.hide();
     }
   }
 

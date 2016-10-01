@@ -102,7 +102,7 @@ const SlidePanel = {
   },
 
   hide(object) {
-    if (object.length !== 0) {
+    if (typeof object !== 'undefined' && typeof object.options !== 'undefined') {
       const view = this.getView(object.options);
       view.hide();
     } else if (this._current !== null) {

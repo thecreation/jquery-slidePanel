@@ -1,5 +1,5 @@
 /**
-* jQuery slidePanel v0.3.0
+* jQuery slidePanel v0.3.1
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
@@ -61,7 +61,7 @@
     }();
 
     var info = {
-      version: '0.3.0'
+      version: '0.3.1'
     };
 
     function convertMatrixToArray(value) {
@@ -780,7 +780,8 @@
           if (Math.abs(distance) < this.options.dragTolerance) {
             this._view.revert();
           } else {
-            SlidePanel.hide();
+            this._view.hide();
+          // SlidePanel.hide();
           }
         }
       }, {
@@ -1263,7 +1264,7 @@
         return this._views[code] = new View(options);
       },
       hide: function hide(object) {
-        if (object.length !== 0) {
+        if (typeof object !== 'undefined' && typeof object.options !== 'undefined') {
           var view = this.getView(object.options);
           view.hide();
         } else if (this._current !== null) {
@@ -1390,7 +1391,7 @@
 
     _jquery2.default.extend(_jquery2.default.slidePanel, {
       setDefaults: function setDefaults(options) {
-        _jquery2.default.extend(DEFAULTS, _jquery2.default.isPlainObject(options) && options);
+        _jquery2.default.extend(true, DEFAULTS, _jquery2.default.isPlainObject(options) && options);
       },
       noConflict: function noConflict() {
         _jquery2.default.fn.slidePanel = OtherSlidePanel;

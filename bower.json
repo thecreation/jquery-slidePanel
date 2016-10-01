@@ -1,6 +1,6 @@
 {
   "name": "jquery-slidePanel",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "A jquery plugin that show a slide panel on side.",
   "main": "dist/jquery-slidePanel.js",
   "copyright": "amazingSurge",
