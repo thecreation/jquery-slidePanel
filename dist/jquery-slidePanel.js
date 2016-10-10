@@ -1,5 +1,5 @@
 /**
-* jQuery slidePanel v0.3.1
+* jQuery slidePanel v0.3.2
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
@@ -61,7 +61,7 @@
     }();
 
     var info = {
-      version: '0.3.1'
+      version: '0.3.2'
     };
 
     function convertMatrixToArray(value) {
@@ -1198,7 +1198,7 @@
         (0, _jquery2.default)(document).trigger('slidePanel::' + event, data);
 
         if (_jquery2.default.isFunction(view.options[event])) {
-          view.options[event](args);
+          view.options[event].call(view, args);
         }
       },
       eventName: function eventName(events) {
