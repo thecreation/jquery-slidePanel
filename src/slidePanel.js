@@ -40,7 +40,7 @@ const SlidePanel = {
     // event
     $(document).trigger(`slidePanel::${event}`, data);
     if ($.isFunction(view.options[event])) {
-      view.options[event].call(view, args);
+      view.options[event].apply(view, args);
     }
   },
 

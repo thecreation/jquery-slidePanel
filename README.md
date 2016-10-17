@@ -46,6 +46,11 @@ bower install jquery-slidePanel --save
 npm install jquery-slidePanel --save
 ```
 
+#### Install From Yarn
+```sh
+yarn add jquery-slidePanel
+```
+
 #### Build From Source
 If you want build from source:
 

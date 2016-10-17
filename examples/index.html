@@ -256,10 +256,10 @@
 				$.slidePanel.show({
 					url: 'ajax.html'
 				}, {
-					beforeLoad: function(coming, previous) {
+					beforeLoad: function(coming) {
 						console.info('beforeLoad');
 					},
-					afterLoad: function(coming, previous) {
+					afterLoad: function(coming) {
 						console.info('afterLoad');
 					},
 					onChange: function(coming, previous) {
