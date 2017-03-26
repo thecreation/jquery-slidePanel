@@ -19,6 +19,10 @@ import path         from 'path';
 import notify       from 'gulp-notify';
 import replace      from 'gulp-replace';
 
+let dependencies = {
+  jquery: 'jQuery'
+};
+
 export function bundler(src = config.scripts.src, dest = config.scripts.dest, entry = config.scripts.entry, files = config.scripts.files, message = 'Bundler task complete') {
   return function () {
     let srcFiles = getSrcFiles(src, files);
@@ -28,9 +32,10 @@ export function bundler(src = config.scripts.src, dest = config.scripts.dest, en
       .pipe(plumber({errorHandler: handleErrors}))
       .pipe(rollup({
         entry: `${src}/${entry}`,
-        globals: {
-          jquery: 'jQuery'
-        }
+        globals: dependencies,
+        external: [
+          'jquery'
+        ]
       }))
       .pipe(header(config.banner))
       .pipe(rename({
@@ -62,9 +67,7 @@ export function scripts(src = config.scripts.src, dest = config.scripts.dest, en
         "presets": ["es2015"],
         "plugins": [
           ["transform-es2015-modules-umd", {
-            "globals": {
-              "jquery": "jQuery"
-            }
+            "globals": dependencies
           }]
         ]
       }))

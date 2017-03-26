@@ -1,5 +1,5 @@
 /**
-* jQuery slidePanel v0.3.3
+* jQuery slidePanel v0.3.4
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
@@ -8,7 +8,7 @@
 import $$1 from 'jquery';
 
 var info = {
-  version:'0.3.3'
+  version:'0.3.4'
 };
 
 function convertMatrixToArray(value) {
@@ -742,7 +742,7 @@ class View {
     this.$content = this.$panel.find(`.${this.options.classes.content}`);
 
     if (options.closeSelector) {
-      this.$panel.on('click', options.closeSelector, () => {
+      this.$panel.on('click touchstart', options.closeSelector, () => {
         that.hide();
         return false;
       });

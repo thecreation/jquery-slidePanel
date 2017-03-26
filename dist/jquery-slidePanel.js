@@ -1,11 +1,13 @@
 /**
-* jQuery slidePanel v0.3.3
+* jQuery slidePanel v0.3.4
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
 * Released under the LGPL-3.0 license
 */
-(function(global, factory) {
+(
+
+  function(global, factory) {
   if (typeof define === "function" && define.amd) {
     define(['jquery'], factory);
   } else if (typeof exports !== "undefined") {
@@ -17,7 +19,8 @@
     factory(global.jQuery);
     global.jquerySlidePanelEs = mod.exports;
   }
-})(this,
+}
+)(this,
 
   function(_jquery) {
     'use strict';
@@ -61,7 +64,7 @@
     }();
 
     var info = {
-      version: '0.3.3'
+      version: '0.3.4'
     };
 
     function convertMatrixToArray(value) {
@@ -233,7 +236,9 @@
      **/
     var Support = {};
 
-    (function(support) {
+    (
+
+      function(support) {
       /**
        * Borrowed from Owl carousel
        **/
@@ -348,7 +353,8 @@
         return window.MSPointerEvent ? 'MSPointer' + pointerEvent.charAt(9).toUpperCase() + pointerEvent.substr(10) : pointerEvent;
       }
       ;
-    })(Support);
+    }
+    )(Support);
 
     function easingBezier(mX1, mY1, mX2, mY2) {
       'use strict';
@@ -492,40 +498,38 @@
             }
             , 20);
         } else {
-          (function() {
-            var startTime = getTime();
-            var start = view.getPosition();
-            var end = value;
+          var startTime = getTime();
+          var start = view.getPosition();
+          var end = value;
 
-            var run = function run(time) {
-              var percent = (time - startTime) / view.options.duration;
+          var run = function run(time) {
+            var percent = (time - startTime) / view.options.duration;
 
-              if (percent > 1) {
-                percent = 1;
+            if (percent > 1) {
+              percent = 1;
+            }
+
+            percent = Easings[easing].fn(percent);
+
+            var current = parseFloat(start + percent * (end - start), 10);
+
+            view.setPosition(current);
+
+            if (percent === 1) {
+              window.cancelAnimationFrame(that._frameId);
+              that._frameId = null;
+
+              if (_jquery2.default.isFunction(callback)) {
+                callback();
               }
 
-              percent = Easings[easing].fn(percent);
+              SlidePanel.leave('animating');
+            } else {
+              that._frameId = window.requestAnimationFrame(run);
+            }
+          };
 
-              var current = parseFloat(start + percent * (end - start), 10);
-
-              view.setPosition(current);
-
-              if (percent === 1) {
-                window.cancelAnimationFrame(that._frameId);
-                that._frameId = null;
-
-                if (_jquery2.default.isFunction(callback)) {
-                  callback();
-                }
-
-                SlidePanel.leave('animating');
-              } else {
-                that._frameId = window.requestAnimationFrame(run);
-              }
-            };
-
-            that._frameId = window.requestAnimationFrame(run);
-          })();
+          that._frameId = window.requestAnimationFrame(run);
         }
       }
     };
@@ -901,7 +905,7 @@
           this.$content = this.$panel.find('.' + this.options.classes.content);
 
           if (options.closeSelector) {
-            this.$panel.on('click', options.closeSelector,
+            this.$panel.on('click touchstart', options.closeSelector,
 
               function() {
                 that.hide();
@@ -1309,22 +1313,20 @@
     }
 
     if (/iP(ad|hone|od).*OS (6|7|8)/.test(window.navigator.userAgent) || !window.requestAnimationFrame || !window.cancelAnimationFrame) {
-      (function() {
-        var lastTime = 0;
-        window.requestAnimationFrame = function(callback) {
-          var now = getTime();
-          var nextTime = Math.max(lastTime + 16, now);
+      var lastTime = 0;
+      window.requestAnimationFrame = function(callback) {
+        var now = getTime();
+        var nextTime = Math.max(lastTime + 16, now);
 
-          return setTimeout(
+        return setTimeout(
 
-            function() {
-              callback(lastTime = nextTime);
-            }
-            , nextTime - now);
-        }
-        ;
-        window.cancelAnimationFrame = clearTimeout;
-      })();
+          function() {
+            callback(lastTime = nextTime);
+          }
+          , nextTime - now);
+      }
+      ;
+      window.cancelAnimationFrame = clearTimeout;
     }
 
     var OtherSlidePanel = _jquery2.default.fn.slidePanel;

@@ -51,7 +51,7 @@ class View {
     this.$content = this.$panel.find(`.${this.options.classes.content}`);
 
     if (options.closeSelector) {
-      this.$panel.on('click', options.closeSelector, () => {
+      this.$panel.on('click touchstart', options.closeSelector, () => {
         that.hide();
         return false;
       });
