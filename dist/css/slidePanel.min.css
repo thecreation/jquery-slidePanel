@@ -1,8 +1,9 @@
 /**
-* jQuery slidePanel v0.3.4
+* jQuery slidePanel v0.3.5
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
 * Released under the LGPL-3.0 license
 */
 .slidePanel{position:fixed;max-width:100%;max-height:100%;visibility:hidden}.slidePanel-left,.slidePanel-right{width:500px}@media (max-width:768px){.slidePanel-left,.slidePanel-right{width:100%}}.slidePanel-bottom,.slidePanel-top{width:100%;height:400px}@media (max-width:768px){.slidePanel-bottom,.slidePanel-top{top:0;bottom:0;height:auto}}.slidePanel-left{top:0;bottom:0;left:0}.slidePanel-right{top:0;right:0;bottom:0}.slidePanel-top{top:0;left:0}.slidePanel-bottom{bottom:0;left:0}.slidePanel-show{visibility:visible}.slidePanel-loading{visibility:hidden}.slidePanel-loading-show{visibility:visible}.slidePanel-loading .spinner{position:absolute;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);-ms-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}
+/*# sourceMappingURL=slidePanel.min.css.map */

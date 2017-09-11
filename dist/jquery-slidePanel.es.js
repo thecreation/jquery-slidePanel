@@ -1,5 +1,5 @@
 /**
-* jQuery slidePanel v0.3.4
+* jQuery slidePanel v0.3.5
 * https://github.com/amazingSurge/jquery-slidePanel
 *
 * Copyright (c) amazingSurge
@@ -8,7 +8,7 @@
 import $$1 from 'jquery';
 
 var info = {
-  version:'0.3.4'
+  version:'0.3.5'
 };
 
 function convertMatrixToArray(value) {
