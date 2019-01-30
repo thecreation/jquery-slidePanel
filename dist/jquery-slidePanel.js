@@ -161,10 +161,11 @@
     mouseDrag: true,
     touchDrag: true,
     pointerDrag: true,
+    enableTouchScroll: false,
 
     direction: 'right', // top, bottom, left, right
     duration: '500',
-    easing: 'ease', // linear, ease-in, ease-out, ease-in-out
+    easing: 'ease', // linear, ease-in, ease-out, ease-in-out,
 
     // callbacks
     beforeLoad: $.noop, // Before loading
@@ -769,7 +770,7 @@
             _jquery2.default.proxy(this.onDragEnd, this)
           );
 
-          event.preventDefault();
+          !this.options.enableTouchScroll && event.preventDefault();
         }
       },
       {
@@ -777,11 +778,14 @@
         value: function onDragMove(event) {
           var distance = this.distance(this._drag.pointer, this.pointer(event));
 
-          if (!SlidePanel.is('dragging')) {
+          if (
+            !SlidePanel.is('dragging') ||
+            Math.abs(distance.scroll) > Math.abs(distance.drag)
+          ) {
             return;
           }
 
-          if (Math.abs(distance) > this.options.dragTolerance) {
+          if (Math.abs(distance.drag) > this.options.dragTolerance) {
             if (this._willClose !== true) {
               this._willClose = true;
               this._view.$panel.addClass(this.options.classes.willClose);
@@ -795,14 +799,18 @@
             return;
           }
 
-          event.preventDefault();
-          this.move(distance);
+          !this.options.enableTouchScroll && event.preventDefault();
+          this.move(distance.drag);
         }
       },
       {
         key: 'onDragEnd',
         value: function onDragEnd(event) {
           var distance = this.distance(this._drag.pointer, this.pointer(event));
+
+          if (Math.abs(distance.scroll) > Math.abs(distance.drag)) {
+            return;
+          }
 
           (0, _jquery2.default)(document).off(
             SlidePanel.eventName(
@@ -825,7 +833,7 @@
 
           SlidePanel.trigger(this._view, 'afterDrag');
 
-          if (Math.abs(distance) < this.options.dragTolerance) {
+          if (Math.abs(distance.drag) < this.options.dragTolerance) {
             this._view.revert();
           } else {
             this._view.hide();
@@ -865,10 +873,12 @@
         key: 'distance',
         value: function distance(first, second) {
           var d = this.options.direction;
-          if (d === 'left' || d === 'right') {
-            return second.x - first.x;
-          }
-          return second.y - first.y;
+          var dx = second.x - first.x;
+          var dy = second.y - first.y;
+
+          return d === 'left' || d === 'right'
+            ? { drag: dx, scroll: this.options.enableTouchScroll ? dy : 0 }
+            : { drag: dy, scroll: this.options.enableTouchScroll ? dx : 0 };
         }
       },
       {
