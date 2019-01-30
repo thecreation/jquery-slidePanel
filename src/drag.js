@@ -107,7 +107,7 @@ class Drag {
 
     $(document).on(SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
 
-    event.preventDefault();
+    !this.options.enableTouchScroll && event.preventDefault();
   }
 
   /**
@@ -134,7 +134,7 @@ class Drag {
       return;
     }
 
-    event.preventDefault();
+    !this.options.enableTouchScroll && event.preventDefault();
     this.move(distance.drag);
   }
 
