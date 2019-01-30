@@ -116,7 +116,7 @@ class Drag {
   onDragMove(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    if (!SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging') || Math.abs(distance.scroll) > Math.abs(distance.drag)) {
       return;
     }
 
@@ -143,6 +143,10 @@ class Drag {
    */
   onDragEnd(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
+
+    if (Math.abs(distance.scroll) > Math.abs(distance.drag)) {
+      return;
+    }
 
     $(document).off(SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
