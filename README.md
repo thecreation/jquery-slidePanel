@@ -144,6 +144,7 @@ There are some example usages that you can look at to get started. They can be f
   mouseDrag: true,
   touchDrag: true,
   pointerDrag: true,
+  enableTouchScroll: false,
 
   direction: 'right', // top, bottom, left, right
   duration: '500',
