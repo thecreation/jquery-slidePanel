@@ -44,10 +44,11 @@ export default {
   mouseDrag: true,
   touchDrag: true,
   pointerDrag: true,
+  enableTouchScroll: false,
 
   direction: 'right', // top, bottom, left, right
   duration: '500',
-  easing: 'ease', // linear, ease-in, ease-out, ease-in-out
+  easing: 'ease', // linear, ease-in, ease-out, ease-in-out,
 
   // callbacks
   beforeLoad: $.noop, // Before loading

@@ -107,7 +107,7 @@ class Drag {
 
     $(document).on(SlidePanel.eventName('blur'), $.proxy(this.onDragEnd, this));
 
-    event.preventDefault();
+    !this.options.enableTouchScroll && event.preventDefault();
   }
 
   /**
@@ -116,11 +116,11 @@ class Drag {
   onDragMove(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
 
-    if (!SlidePanel.is('dragging')) {
+    if (!SlidePanel.is('dragging') || Math.abs(distance.scroll) > Math.abs(distance.drag)) {
       return;
     }
 
-    if (Math.abs(distance) > this.options.dragTolerance) {
+    if (Math.abs(distance.drag) > this.options.dragTolerance) {
       if (this._willClose !== true) {
         this._willClose = true;
         this._view.$panel.addClass(this.options.classes.willClose);
@@ -134,8 +134,8 @@ class Drag {
       return;
     }
 
-    event.preventDefault();
-    this.move(distance);
+    !this.options.enableTouchScroll && event.preventDefault();
+    this.move(distance.drag);
   }
 
   /**
@@ -143,6 +143,10 @@ class Drag {
    */
   onDragEnd(event) {
     const distance = this.distance(this._drag.pointer, this.pointer(event));
+
+    if (Math.abs(distance.scroll) > Math.abs(distance.drag)) {
+      return;
+    }
 
     $(document).off(SlidePanel.eventName('mousemove mouseup touchmove touchend pointermove pointerup MSPointerMove MSPointerUp blur'));
 
@@ -161,7 +165,7 @@ class Drag {
 
     SlidePanel.trigger(this._view, 'afterDrag');
 
-    if (Math.abs(distance) < this.options.dragTolerance) {
+    if (Math.abs(distance.drag) < this.options.dragTolerance) {
       this._view.revert();
     } else {
       this._view.hide();
@@ -198,13 +202,16 @@ class Drag {
 
   /**distance
    * Gets the distance of two pointer.
+   * @returns {Object} - Contains 'drag' and 'scroll' distances between the given pointers.
    */
   distance(first, second) {
     const d = this.options.direction;
-    if (d === 'left' || d === 'right') {
-      return second.x - first.x;
-    }
-    return second.y - first.y;
+    var dx = second.x - first.x;
+    var dy = second.y - first.y;
+
+    return (d === 'left' || d === 'right') ?
+        { drag: dx, scroll: this.options.enableTouchScroll ? dy : 0 }
+        : { drag: dy, scroll: this.options.enableTouchScroll ? dx : 0 };
   }
 
   move(value) {
